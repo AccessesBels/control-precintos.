@@ -17,7 +17,6 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- LOGIN ELEGANTE -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-black">
         <div class="glass p-12 rounded-[2rem] shadow-2xl w-full max-w-md text-center transform transition-all">
             <div class="mb-8">
@@ -34,7 +33,7 @@
                 </div>
                 <div class="relative">
                     <i class="fas fa-key absolute left-4 top-4 text-slate-500"></i>
-                    <input type="password" id="pass" placeholder="Contraseña" class="w-full bg-slate-900/50 border border-slate-800 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 transition">
+                    <input type="password" id="pass" placeholder="Contraseña" class="w-full bg-slate-900/50 border border-slate-800 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 transition" onkeydown="if(event.key === 'Enter') checkLogin()">
                 </div>
                 <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.02] active:scale-95 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/10 transition-all duration-300">
                     Iniciar Sesión
@@ -44,7 +43,6 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboardMain" class="hidden flex flex-col md:flex-row min-h-screen">
         <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8 flex flex-col">
             <div class="flex items-center gap-3 mb-12">
@@ -78,12 +76,56 @@
                 </div>
             </header>
 
-            <!-- Formulario Registro -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                    <div>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Precintos</p>
+                        <h3 id="cardTotal" class="text-3xl font-extrabold text-white mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                    <div>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Instalados</p>
+                        <h3 id="cardInstalados" class="text-3xl font-extrabold text-emerald-400 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                    <div>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">En Stock</p>
+                        <h3 id="cardStock" class="text-3xl font-extrabold text-amber-400 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                    <div>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Dañados</p>
+                        <h3 id="cardDanados" class="text-3xl font-extrabold text-red-400 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                </div>
+            </section>
+
             <section class="glass p-8 rounded-[2rem] mb-12">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Precinto(s)</label>
-                        <input type="text" id="inputPrecinto" placeholder="ID o IDs separados" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Precinto(s)</label>
+                            <label class="text-[10px] bg-slate-800 hover:bg-slate-700 text-blue-400 px-2 py-0.5 rounded-md cursor-pointer font-semibold transition border border-slate-700 flex items-center gap-1">
+                                <i class="fas fa-file-upload text-[9px]"></i> Cargar CSV / Excel
+                                <input type="file" id="inputCsvMasivo" accept=".csv" class="hidden" onchange="cargarMasivoCSV(event)">
+                            </label>
+                        </div>
+                        <input type="text" id="inputPrecinto" placeholder="ID o separados por espacios" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ubicación / NAP</label>
@@ -105,7 +147,6 @@
                 </div>
             </section>
 
-            <!-- Tabla -->
             <section class="glass rounded-[2rem] overflow-hidden">
                 <div class="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between gap-4">
                     <h3 class="text-xl font-bold">Historial de Sellos (<span id="statTotal" class="text-blue-400">0</span>)</h3>
@@ -133,7 +174,7 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE MULTIUSUARIOS
+        // CONFIGURACIÓN DE MULTIUSUARIOS (Mantenidos exactamente igual)
         const USUARIOS = {
             "SCRUZ": "Scruz31.",
             "GCON": "Gcon31.",
@@ -141,7 +182,7 @@
         };
 
         function checkLogin() {
-            const u = document.getElementById('user').value;
+            const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value;
             
             if(USUARIOS[u] && USUARIOS[u] === p) {
@@ -167,11 +208,28 @@
 
         function actualizarDashboard() {
             const cuerpo = document.getElementById('tablaCuerpo');
-            document.getElementById('statTotal').innerText = precintos.length;
+            
+            let total = precintos.length;
+            let instalados = precintos.filter(p => p.estado === 'Instalado').length;
+            let stock = precintos.filter(p => p.estado === 'En Stock').length;
+            let danados = precintos.filter(p => p.estado === 'Dañado').length;
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('cardTotal').innerText = total;
+            document.getElementById('cardInstalados').innerText = instalados;
+            document.getElementById('cardStock').innerText = stock;
+            document.getElementById('cardDanados').innerText = danados;
+
             cuerpo.innerHTML = '';
 
             precintos.slice().reverse().forEach((p, index) => {
                 const realIndex = precintos.length - 1 - index;
+                
+                let selectColors = "bg-slate-900 border-slate-700 text-slate-300";
+                if(p.estado === 'Instalado') selectColors = "bg-emerald-950/40 border-emerald-800 text-emerald-400";
+                if(p.estado === 'En Stock') selectColors = "bg-amber-950/40 border-amber-800 text-amber-400";
+                if(p.estado === 'Dañado') selectColors = "bg-red-950/40 border-red-800 text-red-400";
+
                 cuerpo.innerHTML += `
                     <tr class="hover:bg-blue-500/5 transition group">
                         <td class="p-6 text-xs text-slate-500 font-medium">${p.fecha}</td>
@@ -180,10 +238,10 @@
                         </td>
                         <td class="p-6 text-sm font-semibold text-slate-400">${p.detalle}</td>
                         <td class="p-6">
-                            <select onchange="editarEstado(${realIndex}, this.value)" class="bg-slate-900 border border-slate-700 text-[10px] p-2 rounded-lg outline-none cursor-pointer focus:ring-1 focus:ring-blue-500">
-                                <option value="Instalado" ${p.estado === 'Instalado' ? 'selected' : ''}>Instalado</option>
-                                <option value="En Stock" ${p.estado === 'En Stock' ? 'selected' : ''}>En Stock</option>
-                                <option value="Dañado" ${p.estado === 'Dañado' ? 'selected' : ''}>Dañado</option>
+                            <select onchange="editarEstado(${realIndex}, this.value)" class="border text-[11px] font-bold p-2 px-3 rounded-xl outline-none cursor-pointer focus:ring-2 focus:ring-blue-500 transition ${selectColors}">
+                                <option class="bg-slate-950 text-slate-300" value="Instalado" ${p.estado === 'Instalado' ? 'selected' : ''}>Instalado</option>
+                                <option class="bg-slate-950 text-slate-300" value="En Stock" ${p.estado === 'En Stock' ? 'selected' : ''}>En Stock</option>
+                                <option class="bg-slate-950 text-slate-300" value="Dañado" ${p.estado === 'Dañado' ? 'selected' : ''}>Dañado</option>
                             </select>
                         </td>
                         <td class="p-6 text-center">
@@ -198,22 +256,77 @@
         }
 
         function registrarPrecinto() {
-            const num = document.getElementById('inputPrecinto').value;
-            if(!num) return;
-            precintos.push({
-                fecha: new Date().toLocaleString(),
-                numero: num,
-                detalle: document.getElementById('inputDetalle').value || "No especificado",
-                estado: document.getElementById('inputEstado').value
+            const rawInput = document.getElementById('inputPrecinto').value;
+            if(!rawInput.trim()) return;
+            
+            const idsInput = rawInput.split(/[\s,;\n]+/).filter(id => id.trim() !== "");
+            const detalleInput = document.getElementById('inputDetalle').value.trim() || "No especificado";
+            const estadoInput = document.getElementById('inputEstado').value;
+            const fechaActual = new Date().toLocaleString();
+
+            idsInput.forEach(id => {
+                precintos.push({
+                    fecha: fechaActual,
+                    numero: id,
+                    detalle: detalleInput,
+                    estado: estadoInput
+                });
             });
+
             document.getElementById('inputPrecinto').value = '';
             document.getElementById('inputDetalle').value = '';
+            
             actualizarDashboard();
+        }
+
+        // NUEVA FUNCIÓN: Lector Masivo Inteligente de Archivos CSV
+        function cargarMasivoCSV(event) {
+            const archivo = event.target.files[0];
+            if (!archivo) return;
+
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                const contenido = e.target.result;
+                // Dividir por saltos de línea
+                const lineas = contenido.split(/\r?\n/);
+                if(lineas.length <= 1) {
+                    alert("El archivo está vacío o no contiene el formato correcto.");
+                    return;
+                }
+
+                let registrosCargados = 0;
+                const fechaActual = new Date().toLocaleString();
+
+                // Empezamos en 1 omitiendo la fila del encabezado (Fecha,Identificador,Ubicacion,Estado)
+                for (let i = 1; i < lineas.length; i++) {
+                    const linea = lineas[i].trim();
+                    if (!linea) continue; // Saltar líneas vacías
+
+                    // Dividir por comas, limpiando comillas si existieran
+                    const columnas = linea.split(',').map(col => col.replace(/^["']|["']$/g, '').trim());
+                    
+                    // Validar que al menos tengamos un identificador de precinto
+                    if (columnas.length >= 2 && columnas[1] !== "") {
+                        precintos.push({
+                            fecha: columnas[0] || fechaActual,
+                            numero: columnas[1],
+                            detalle: columnas[2] || "No especificado",
+                            estado: columnas[3] || "En Stock"
+                        });
+                        registrosCargados++;
+                    }
+                }
+
+                alert(`¡Éxito! Se cargaron de forma masiva de ${registrosCargados} precintos correctamente.`);
+                event.target.value = ''; // Limpiar el input file
+                actualizarDashboard();
+            };
+            lector.readAsText(archivo);
         }
 
         function editarEstado(i, s) { 
             precintos[i].estado = s; 
-            localStorage.setItem('precintos_data', JSON.stringify(precintos));
+            actualizarDashboard(); 
         }
 
         function eliminar(i) { if(confirm("¿Confirmas la eliminación definitiva?")) { precintos.splice(i, 1); actualizarDashboard(); } }
@@ -240,9 +353,13 @@
         }
 
         function exportarCSV() {
+            if(precintos.length === 0) {
+                alert("No hay registros para exportar.");
+                return;
+            }
             let csv = "Fecha,Identificador,Ubicacion,Estado\n";
-            precintos.forEach(p => csv += `${p.fecha},${p.numero},${p.detalle},${p.estado}\n`);
-            const blob = new Blob([csv], { type: 'text/csv' });
+            precintos.forEach(p => csv += `"${p.fecha}","${p.numero}","${p.detalle}","${p.estado}"\n`);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a');
             a.href = window.URL.createObjectURL(blob);
             a.download = `CDR_Scruz_Reporte_${new Date().toLocaleDateString()}.csv`;
