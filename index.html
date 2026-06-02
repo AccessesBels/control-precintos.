@@ -232,9 +232,9 @@
 
     <script>
         // =========================================================
-        // CONFIGURACIÓN DE TU BASE DE DATOS EN LA NUBE (REALTIME)
+        // URL ENLAZADA DIRECTAMENTE CON TU FIREBASE REALTIME
         // =========================================================
-        const FIREBASE_DB_URL = "TU_URL_DE_FIREBASE_AQUI"; 
+        const FIREBASE_DB_URL = "https://cdr-scruz-default-rtdb.firebaseio.com"; 
 
         const USUARIOS = { "SCRUZ": "Scruz31.", "GCON": "Gcon31.", "Invitado": "isp99" };
         let baseDatosMaestra = [];
@@ -243,30 +243,50 @@
         const filasPorPagina = 15;
         let estadoFiltroActivo = "Todos";
 
+        function inicializarBaseDatosLocal() {
+            const cachePrecintos = localStorage.getItem('backup_precintos');
+            const cacheInformes = localStorage.getItem('backup_informes');
+            if(cachePrecintos) baseDatosMaestra = JSON.parse(cachePrecintos);
+            if(cacheInformes) baseDatosInformes = JSON.parse(cacheInformes);
+            cargarEstadisticasYTabla();
+            renderizarTablaInformes();
+        }
+
         function conectarServidorRealtime() {
-            if(!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("TU_URL")) return;
+            inicializarBaseDatosLocal();
+            if(!FIREBASE_DB_URL) return;
             
             fetch(`${FIREBASE_DB_URL}/precintos.json`)
                 .then(res => res.json())
                 .then(data => {
-                    baseDatosMaestra = data ? Object.values(data) : [];
-                    cargarEstadisticasYTabla();
-                }).catch(err => console.error(err));
+                    if(data) {
+                        baseDatosMaestra = Object.values(data);
+                        localStorage.setItem('backup_precintos', JSON.stringify(baseDatosMaestra));
+                        cargarEstadisticasYTabla();
+                    }
+                }).catch(err => console.error("Firebase offline, usando LocalStorage local."));
 
             fetch(`${FIREBASE_DB_URL}/informes.json`)
                 .then(res => res.json())
                 .then(data => {
-                    baseDatosInformes = data ? Object.values(data) : [];
-                    renderizarTablaInformes();
+                    if(data) {
+                        baseDatosInformes = Object.values(data);
+                        localStorage.setItem('backup_informes', JSON.stringify(baseDatosInformes));
+                        renderizarTablaInformes();
+                    }
                 }).catch(err => console.error(err));
         }
 
         function actualizarNube(nodo, dataCompleta) {
-            if(!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("TU_URL")) return;
+            localStorage.setItem(`backup_${nodo}`, JSON.stringify(dataCompleta));
+            cargarEstadisticasYTabla();
+            renderizarTablaInformes();
+
+            if(!FIREBASE_DB_URL) return;
             fetch(`${FIREBASE_DB_URL}/${nodo}.json`, {
                 method: 'PUT',
                 body: JSON.stringify(dataCompleta)
-            }).then(() => conectarServidorRealtime());
+            }).catch(e => console.log("Guardado en local. Esperando red mas estable."));
         }
 
         function checkLogin() {
@@ -290,18 +310,19 @@
             setTimeout(() => {
                 document.getElementById('userNameDisplay').innerText = sessionStorage.getItem('activeUser');
                 conectarServidorRealtime();
-            }, 100);
+            }, 50);
         }
 
         function limpiarTodaLaBaseDatos() {
-            if (confirm("🚨 ¿Borrar todos los datos permanentemente del servidor?")) {
+            if (confirm("🚨 ¿Borrar todos los datos permanentemente del servidor central y local?")) {
                 baseDatosMaestra = [];
                 baseDatosInformes = [];
-                fetch(`${FIREBASE_DB_URL}/.json`, { method: 'DELETE' }).then(() => {
-                    paginaActual = 1;
-                    cargarEstadisticasYTabla();
-                    renderizarTablaInformes();
-                });
+                localStorage.removeItem('backup_precintos');
+                localStorage.removeItem('backup_informes');
+                fetch(`${FIREBASE_DB_URL}/.json`, { method: 'DELETE' });
+                paginaActual = 1;
+                cargarEstadisticasYTabla();
+                renderizarTablaInformes();
             }
         }
 
@@ -405,7 +426,7 @@
         }
 
         // =========================================================
-        // PARSER REVISADO: EVITA ASIGNAR FECHAS O CAMPOS VACÍOS AL ID
+        // MOTOR ANALIZADOR CSV AVANZADO (EVITA CRUCES CON LA FECHA)
         // =========================================================
         function procesarArchivoMasivo(event) {
             const file = event.target.files[0];
@@ -418,37 +439,45 @@
                 const fec = new Date().toLocaleDateString();
                 let agregados = 0;
 
-                lines.forEach((line, i) => {
-                    const cleanLine = line.trim();
-                    if (!cleanLine) return;
+                for (let i = 0; i < lines.length; i++) {
+                    const cleanLine = lines[i].trim();
+                    if (!cleanLine) continue;
 
                     const delim = cleanLine.includes(';') ? ';' : ',';
                     const cols = cleanLine.split(delim).map(c => c.replace(/^["']|["']$/g, '').trim());
                     
-                    // Buscar cuál columna contiene el ID del precinto real (omitir si es cabecera, vacio o fecha)
-                    let precintoID = cols[0];
+                    let candidatoID = cols[0];
                     let detalle = cols[1] || "Importado Masivo";
                     let estado = cols[2] || "Instalado";
 
-                    if (!precintoID || precintoID.toLowerCase().includes('id') || precintoID.toLowerCase().includes('precinto') || precintoID.includes('/')) {
-                        // Si la primera columna parece una fecha o cabecera, intentamos con la segunda si existe
-                        if(cols[1] && !cols[1].includes('/') && cols[1].length > 3) {
-                            precintoID = cols[1];
+                    if (!candidatoID) continue;
+
+                    let esCabeceraUIdInvalido = 
+                        candidatoID.toLowerCase().includes('id') || 
+                        candidatoID.toLowerCase().includes('precinto') || 
+                        candidatoID.toLowerCase().includes('serial') || 
+                        candidatoID.toLowerCase().includes('fecha') ||
+                        candidatoID.includes('/') || 
+                        candidatoID.includes('-');
+
+                    if (esCabeceraUIdInvalido) {
+                        if (cols[1] && !cols[1].includes('/') && !cols[1].includes('-') && cols[1].length > 2) {
+                            candidatoID = cols[1];
                             detalle = cols[0];
                         } else {
-                            return; 
+                            continue; 
                         }
                     }
 
                     baseDatosMaestra.push({ 
                         id: Date.now() + i + Math.random(), 
                         fecha: fec, 
-                        numero: precintoID, 
+                        numero: candidatoID, 
                         detalle: detalle, 
                         estado: estado 
                     });
                     agregados++;
-                });
+                }
 
                 if (agregados > 0) {
                     actualizarNube('precintos', baseDatosMaestra);
@@ -456,7 +485,7 @@
                     document.getElementById('wrapperCsvStatus').classList.remove('hidden');
                     document.getElementById('fileCargaMasiva').value = '';
                 } else {
-                    alert("No se encontraron registros de precintos válidos en las columnas.");
+                    alert("No se detectaron columnas válidas.");
                 }
             };
             reader.readAsText(file);
@@ -517,6 +546,7 @@
             }
 
             const cuerpo = document.getElementById('tablaCuerpo');
+            if(!cuerpo) return;
             cuerpo.innerHTML = '';
             
             let datosPaginados = datos.slice().reverse().slice((paginaActual-1)*filasPorPagina, paginaActual*filasPorPagina);
