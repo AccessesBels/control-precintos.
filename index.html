@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CDR Scruz - Sistema de Precintos Global Realtime</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;600;700&display=swap');
@@ -15,6 +17,7 @@
 </head>
 <body class="min-h-screen">
 
+    <!-- LOGIN -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-black">
         <div class="glass p-12 rounded-[2rem] shadow-2xl w-full max-w-md text-center">
             <div class="mb-8">
@@ -33,8 +36,10 @@
         </div>
     </div>
 
+    <!-- DASHBOARD -->
     <div id="dashboardMain" class="hidden flex flex-col md:flex-row min-h-screen">
         
+        <!-- BARRA LATERAL -->
         <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8 flex flex-col justify-between">
             <div class="space-y-12">
                 <div class="flex items-center gap-3">
@@ -56,7 +61,11 @@
                 </nav>
             </div>
 
+            <!-- CONTROLES INFERIORES -->
             <div class="space-y-4 pt-6 border-t border-slate-800/60">
+                <div class="text-xs text-slate-500 px-4 flex items-center gap-2">
+                    <i class="fas fa-user-circle"></i> Técnico: <span id="userNameDisplay" class="font-bold text-slate-400"></span>
+                </div>
                 <div onclick="limpiarTodaLaBaseDatos()" class="flex items-center gap-3 text-red-400 hover:bg-red-500/10 p-4 rounded-2xl cursor-pointer border border-red-500/20 bg-red-950/10 transition">
                     <i class="fas fa-trash-alt"></i> <span class="font-semibold">Borrar Base de Datos</span>
                 </div>
@@ -66,6 +75,7 @@
             </div>
         </aside>
 
+        <!-- AREA CENTRAL -->
         <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
             <header class="flex justify-between items-end mb-12">
                 <div>
@@ -75,11 +85,12 @@
                 <div class="text-right">
                     <span class="text-xs text-slate-500 uppercase font-bold">Nube Status</span>
                     <p class="text-emerald-400 font-bold flex items-center gap-2 justify-end">
-                        <span class="w-2 Event h-2 rounded-full bg-emerald-400 animate-pulse"></span> ONLINE REALTIME
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ONLINE REALTIME
                     </p>
                 </div>
             </header>
 
+            <!-- VISTA 1: INVENTARIO -->
             <div id="vistaInventario" class="space-y-12">
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div onclick="establecerFiltroEstado('Todos')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition">
@@ -156,20 +167,25 @@
                 </section>
             </div>
 
+            <!-- VISTA 2: CARGA MASIVA -->
             <div id="vistaCargaMasiva" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem]">
                     <h3 class="text-xl font-bold mb-2">Importador Inteligente Cloud</h3>
-                    <p class="text-sm text-slate-400 mb-6">Sube registros masivos directamente al servidor global en la nube.</p>
-                    <div class="flex flex-col md:flex-row gap-4 items-center">
-                        <label class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold px-6 py-4 rounded-xl cursor-pointer shadow-lg text-center flex items-center justify-center gap-3">
+                    <p class="text-sm text-slate-400 mb-6">Sube registros masivos directamente al servidor global en la nube de Firebase.</p>
+                    <div class="flex flex-col md:flex-row gap-6 items-center">
+                        <label class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold px-6 py-4 rounded-xl cursor-pointer shadow-lg text-center flex items-center justify-center gap-3 hover:from-blue-500 hover:to-indigo-500 transition">
                             <i class="fas fa-file-csv text-lg"></i> Seleccionar CSV o JSON
                             <input type="file" id="fileCargaMasiva" accept=".csv, .json" class="hidden" onchange="procesarArchivoMasivo(event)">
                         </label>
-                        <p id="lblCsvStatus" class="text-sm font-bold text-emerald-400"></p>
+                        <div id="wrapperCsvStatus" class="hidden glass px-6 py-3 rounded-xl border border-emerald-500/30 bg-emerald-950/10 flex items-center gap-3">
+                            <i class="fas fa-check-circle text-emerald-400 animate-bounce"></i>
+                            <p id="lblCsvStatus" class="text-sm font-bold text-emerald-400"></p>
+                        </div>
                     </div>
                 </section>
             </div>
 
+            <!-- VISTA 3: INFORMES -->
             <div id="vistaInformes" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem] border border-red-500/20 bg-gradient-to-b from-red-950/10 to-transparent">
                     <div class="flex items-center gap-4 mb-4">
@@ -214,6 +230,7 @@
         </main>
     </div>
 
+    <!-- VISUALIZADOR -->
     <div id="modalVisualizador" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="relative max-w-4xl w-full flex flex-col items-center">
             <button onclick="cerrarVisualizador()" class="absolute -top-12 right-0 text-white hover:text-red-400 text-3xl font-bold"><i class="fas fa-times-circle"></i></button>
@@ -225,9 +242,9 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURACIÓN DE TU BASE DE DATOS EN LA NUBE
-        // ==========================================
+        // =========================================================
+        // CONFIGURACIÓN DE TU BASE DE DATOS EN LA NUBE (REALTIME)
+        // =========================================================
         const FIREBASE_DB_URL = "TU_URL_DE_FIREBASE_AQUI"; 
 
         const USUARIOS = { "SCRUZ": "Scruz31.", "GCON": "Gcon31.", "Invitado": "isp99" };
@@ -237,29 +254,30 @@
         const filasPorPagina = 15;
         let estadoFiltroActivo = "Todos";
 
-        // CONEXIÓN EN TIEMPO REAL CON EL SERVIDOR
+        // CONEXIÓN EN TIEMPO REAL CON EL SERVIDOR DE FIREBASE
         function conectarServidorRealtime() {
-            if(FIREBASE_DB_URL.includes("TU_URL")) return;
+            if(!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("TU_URL")) {
+                console.warn("Falta configurar la URL de Firebase.");
+                return;
+            }
             
-            // Escuchar precintos de la nube
             fetch(`${FIREBASE_DB_URL}/precintos.json`)
                 .then(res => res.json())
                 .then(data => {
                     baseDatosMaestra = data ? Object.values(data) : [];
                     cargarEstadisticasYTabla();
-                });
+                }).catch(err => console.error("Error cargando precintos:", err));
 
-            // Escuchar informes de la nube
             fetch(`${FIREBASE_DB_URL}/informes.json`)
                 .then(res => res.json())
                 .then(data => {
                     baseDatosInformes = data ? Object.values(data) : [];
                     renderizarTablaInformes();
-                });
+                }).catch(err => console.error("Error cargando informes:", err));
         }
 
-        // Sincronizar cambios individuales con el servidor
         function actualizarNube(nodo, dataCompleta) {
+            if(!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("TU_URL")) return;
             fetch(`${FIREBASE_DB_URL}/${nodo}.json`, {
                 method: 'PUT',
                 body: JSON.stringify(dataCompleta)
@@ -284,14 +302,16 @@
         if(sessionStorage.getItem('isLoggedIn') === 'true') {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('dashboardMain').classList.remove('hidden');
-            document.getElementById('userNameDisplay').innerText = sessionStorage.getItem('activeUser');
-            setTimeout(conectarServidorRealtime, 100);
+            setTimeout(() => {
+                document.getElementById('userNameDisplay').innerText = sessionStorage.getItem('activeUser');
+                conectarServidorRealtime();
+            }, 100);
         }
 
         function limpiarTodaLaBaseDatos() {
-            const primerAviso = confirm("🚨 ¡ATENCIÓN NUBE GLOBAL!\n\nEstás a punto de borrar todos los datos del servidor central de forma permanente para todos los usuarios.\n\n¿Quieres continuar?");
+            const primerAviso = confirm("🚨 ¡ATENCIÓN NUBE GLOBAL!\n\nEstás a punto de borrar todos los datos del servidor central de forma permanente.\n\n¿Quieres continuar?");
             if (primerAviso) {
-                const segundoAviso = confirm("⚠️ ¿CONFIRMACIÓN CRÍTICA FINAL?\n\nEsta acción borrará la base de datos remota por completo.");
+                const segundoAviso = confirm("⚠️ ¿CONFIRMACIÓN CRÍTICA FINAL?\n\nEsta acción borrará la base de datos remota por completo de Firebase.");
                 if (segundoAviso) {
                     baseDatosMaestra = [];
                     baseDatosInformes = [];
@@ -302,7 +322,7 @@
                             document.getElementById('busqueda').value = "";
                             cargarEstadisticasYTabla();
                             renderizarTablaInformes();
-                            alert("Base de datos remota borrada correctamente en la nube.");
+                            alert("Base de datos remota borrada correctamente de la nube.");
                         });
                 }
             }
@@ -411,6 +431,9 @@
             }
         }
 
+        // =========================================================
+        // FUNCIÓN DE PARSEO CORREGIDA PARA CUALQUIER FORMATO CSV
+        // =========================================================
         function procesarArchivoMasivo(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -418,29 +441,63 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
+                
                 if (file.name.endsWith('.json')) {
                     try {
                         const parsed = JSON.parse(text);
                         if (parsed.precintos) baseDatosMaestra = parsed.precintos;
-                        if (parsed.informes) baseDatosInformes = parsed.informes;
                         actualizarNube('precintos', baseDatosMaestra);
-                        actualizarNube('informes', baseDatosInformes);
-                    } catch (err) { alert("Error JSON"); }
+                        mostrarEstadoCarga(`Estructura JSON sincronizada.`);
+                    } catch (err) { alert("Error en estructura JSON"); }
                     return;
                 }
-                // Procesar CSV lineal estándar
+                
+                // Procesamiento Avanzado de CSV (Soporta comas, puntos y comas, y saltos limpios)
                 const lineas = text.split(/\r?\n/);
                 const fec = new Date().toLocaleDateString();
+                let agregados = 0;
+
                 lineas.forEach((linea, i) => {
                     if(!linea.trim()) return;
-                    const columnas = linea.split(',').map(col => col.replace(/^["']|["']$/g, '').trim());
-                    if(columnas[0] && columnas[0].toLowerCase() !== 'id') {
-                        baseDatosMaestra.push({ id: Date.now() + i + Math.random(), fecha: fec, numero: columnas[0], detalle: columnas[1]||"Importado", estado: columnas[2]||"Instalado" });
+                    
+                    // Detectar delimitador (punto y coma o coma)
+                    const delimitador = linea.includes(';') ? ';' : ',';
+                    const columnas = linea.split(delimitador).map(col => col.replace(/^["']|["']$/g, '').trim());
+                    
+                    const valorPrincipal = columnas[0];
+                    if (!valorPrincipal) return;
+
+                    // Evitar procesar cabeceras típicas de texto
+                    if (i === 0 && (valorPrincipal.toLowerCase().includes('id') || valorPrincipal.toLowerCase().includes('precinto'))) {
+                        return; 
                     }
+
+                    baseDatosMaestra.push({ 
+                        id: Date.now() + i + Math.random(), 
+                        fecha: fec, 
+                        numero: valorPrincipal, 
+                        detalle: columnas[1] || "Importado Masivo", 
+                        estado: columnas[2] || "Instalado" 
+                    });
+                    agregados++;
                 });
-                actualizarNube('precintos', baseDatosMaestra);
+
+                if (agregados > 0) {
+                    actualizarNube('precintos', baseDatosMaestra);
+                    mostrarEstadoCarga(`¡Se cargaron e inyectaron ${agregados} registros con éxito!`);
+                    document.getElementById('fileCargaMasiva').value = '';
+                } else {
+                    alert("No se detectaron registros válidos en el archivo.");
+                }
             };
             reader.readAsText(file);
+        }
+
+        function mostrarEstadoCarga(mensaje) {
+            const wrapper = document.getElementById('wrapperCsvStatus');
+            const label = document.getElementById('lblCsvStatus');
+            label.innerText = mensaje;
+            wrapper.classList.remove('hidden');
         }
 
         function cambiarVista(vista) {
@@ -461,6 +518,8 @@
                 document.getElementById('vistaCargaMasiva').classList.remove('hidden');
                 document.getElementById('btnNavCarga').className = "flex items-center gap-3 text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 cursor-pointer shadow-inner";
                 document.getElementById('txtModuloTitulo').innerText = "Carga Masiva";
+                // Limpiar aviso previo al entrar
+                document.getElementById('wrapperCsvStatus').classList.add('hidden');
             }
             if (vista === 'informes') {
                 document.getElementById('vistaInformes').classList.remove('hidden');
