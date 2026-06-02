@@ -52,11 +52,14 @@
                 <span class="font-bold text-xl tracking-tight">CDR <span class="text-blue-500">Scruz</span></span>
             </div>
             <nav class="flex-1 space-y-2">
-                <div class="flex items-center gap-3 text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 shadow-inner">
+                <div onclick="cambiarVista('inventario')" id="btnNavInventario" class="flex items-center gap-3 text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 shadow-inner cursor-pointer transition">
                     <i class="fas fa-barcode"></i> <span class="font-semibold">Inventario</span>
                 </div>
-                <div onclick="exportarCSV()" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition">
-                    <i class="fas fa-file-invoice"></i> <span>Reporte CSV</span>
+                <div onclick="cambiarVista('carga')" id="btnNavCarga" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition">
+                    <i class="fas fa-cloud-upload-alt"></i> <span>Carga Masiva (Excel/CSV)</span>
+                </div>
+                <div onclick="exportarHistorialCompleto()" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition">
+                    <i class="fas fa-file-invoice"></i> <span>Reporte Completo CSV</span>
                 </div>
             </nav>
             <button onclick="logout()" class="mt-auto flex items-center gap-3 text-red-400/70 hover:text-red-400 p-4 hover:bg-red-500/5 rounded-2xl transition">
@@ -67,7 +70,7 @@
         <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
             <header class="flex justify-between items-end mb-12">
                 <div>
-                    <h2 class="text-4xl font-bold tracking-tight">Panel Técnico</h2>
+                    <h2 class="text-4xl font-bold tracking-tight" id="txtModuloTitulo">Panel Técnico</h2>
                     <p id="fechaActual" class="text-slate-500 font-medium mt-2"></p>
                 </div>
                 <div class="text-right">
@@ -76,115 +79,163 @@
                 </div>
             </header>
 
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
-                    <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Precintos</p>
-                        <h3 id="cardTotal" class="text-3xl font-extrabold text-white mt-1">0</h3>
+            <div id="vistaInventario" class="space-y-12">
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Precintos</p><h3 id="cardTotal" class="text-3xl font-extrabold text-white mt-1">0</h3></div>
+                        <div class="w-12 h-12 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-boxes"></i></div>
                     </div>
-                    <div class="w-12 h-12 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl flex items-center justify-center text-xl">
-                        <i class="fas fa-boxes"></i>
+                    <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Instalados</p><h3 id="cardInstalados" class="text-3xl font-extrabold text-emerald-400 mt-1">0</h3></div>
+                        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-network-wired"></i></div>
                     </div>
-                </div>
-                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
-                    <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Instalados</p>
-                        <h3 id="cardInstalados" class="text-3xl font-extrabold text-emerald-400 mt-1">0</h3>
+                    <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider">En Stock</p><h3 id="cardStock" class="text-3xl font-extrabold text-amber-400 mt-1">0</h3></div>
+                        <div class="w-12 h-12 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-warehouse"></i></div>
                     </div>
-                    <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl flex items-center justify-center text-xl">
-                        <i class="fas fa-network-wired"></i>
+                    <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Dañados</p><h3 id="cardDanados" class="text-3xl font-extrabold text-red-400 mt-1">0</h3></div>
+                        <div class="w-12 h-12 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-tools"></i></div>
                     </div>
-                </div>
-                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
-                    <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">En Stock</p>
-                        <h3 id="cardStock" class="text-3xl font-extrabold text-amber-400 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl flex items-center justify-center text-xl">
-                        <i class="fas fa-warehouse"></i>
-                    </div>
-                </div>
-                <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-xl">
-                    <div>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Dañados</p>
-                        <h3 id="cardDanados" class="text-3xl font-extrabold text-red-400 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl flex items-center justify-center text-xl">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <section class="glass p-8 rounded-[2rem] mb-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
+                <section class="glass p-8 rounded-[2rem]">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Precinto(s)</label>
-                            <label class="text-[10px] bg-slate-800 hover:bg-slate-700 text-blue-400 px-2 py-0.5 rounded-md cursor-pointer font-semibold transition border border-slate-700 flex items-center gap-1">
-                                <i class="fas fa-file-upload text-[9px]"></i> Cargar CSV / Excel
-                                <input type="file" id="inputCsvMasivo" accept=".csv" class="hidden" onchange="cargarMasivoCSV(event)">
-                            </label>
+                            <input type="text" id="inputPrecinto" placeholder="ID o separados por espacio" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none">
                         </div>
-                        <input type="text" id="inputPrecinto" placeholder="ID o separados por espacios" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ubicación / NAP</label>
+                            <input type="text" id="inputDetalle" placeholder="Zona o Cliente" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Estado</label>
+                            <select id="inputEstado" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none appearance-none">
+                                <option value="Instalado">Instalado</option>
+                                <option value="En Stock">En Stock</option>
+                                <option value="Dañado">Dañado</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="registrarPrecintoIndividual()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+                                Guardar Datos
+                            </button>
+                        </div>
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ubicación / NAP</label>
-                        <input type="text" id="inputDetalle" placeholder="Zona o Cliente" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none">
+                </section>
+
+                <section class="glass rounded-[2rem] overflow-hidden">
+                    <div class="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h3 class="text-xl font-bold">Historial de Sellos (<span id="statTotal" class="text-blue-400">0</span>)</h3>
+                        <div class="relative w-full md:w-72">
+                            <i class="fas fa-search absolute left-4 top-3.5 text-slate-500"></i>
+                            <input type="text" id="busqueda" onkeyup="ejecutarFiltro()" placeholder="Buscar precinto..." class="w-full bg-slate-900 border border-slate-800 pl-12 pr-4 py-3 rounded-xl outline-none focus:border-blue-500">
+                        </div>
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Estado</label>
-                        <select id="inputEstado" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition outline-none appearance-none">
-                            <option value="Instalado">Instalado</option>
-                            <option value="En Stock">En Stock</option>
-                            <option value="Dañado">Dañado</option>
-                        </select>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
+                                <tr>
+                                    <th class="p-6">Fecha Registro</th>
+                                    <th class="p-6">Identificación de Precinto</th>
+                                    <th class="p-6">Nodo / Ubicación</th>
+                                    <th class="p-6">Estado</th>
+                                    <th class="p-6 text-center">Gestión</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCuerpo" class="divide-y divide-slate-800/50"></tbody>
+                        </table>
                     </div>
-                    <div class="flex items-end">
-                        <button onclick="registrarPrecinto()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/20 transition-all active:scale-95">
-                            Guardar Datos
+                    <div class="p-6 bg-slate-950/40 border-t border-slate-800/60 flex justify-between items-center text-sm font-medium">
+                        <span class="text-slate-500" id="infoPaginacion">Mostrando pág. 1</span>
+                        <div class="flex gap-2">
+                            <button onclick="cambiarPagina(-1)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition text-slate-300">Anterior</button>
+                            <button onclick="cambiarPagina(1)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition text-slate-300">Siguiente</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div id="vistaCargaMasiva" class="hidden space-y-8">
+                <section class="glass p-8 rounded-[2rem]">
+                    <h3 class="text-xl font-bold mb-2">Importador de Archivos Masivos</h3>
+                    <p class="text-sm text-slate-400 mb-6">Sube archivos CSV de gran tamaño. El procesamiento se realiza de manera estructurada y asíncrona para no congelar la base de datos.</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <label class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.01] text-white font-bold px-6 py-4 rounded-xl cursor-pointer shadow-lg shadow-blue-500/10 transition text-center flex items-center justify-center gap-3">
+                            <i class="fas fa-file-excel text-lg"></i> Seleccionar Archivo CSV / Excel
+                            <input type="file" id="fileCargaMasiva" accept=".csv" class="hidden" onchange="procesarArchivoMasivo(event)">
+                        </label>
+                        <button onclick="confirmarGuardadoMasivo()" id="btnGuardarMasivo" disabled class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-4 rounded-xl transition disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i> Inyectar Datos a Base de Datos
                         </button>
                     </div>
-                </div>
-            </section>
 
-            <section class="glass rounded-[2rem] overflow-hidden">
-                <div class="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between gap-4">
-                    <h3 class="text-xl font-bold">Historial de Sellos (<span id="statTotal" class="text-blue-400">0</span>)</h3>
-                    <div class="relative w-full md:w-72">
-                        <i class="fas fa-search absolute left-4 top-3.5 text-slate-500"></i>
-                        <input type="text" id="busqueda" onkeyup="filtrarTabla()" placeholder="Buscar precinto..." class="w-full bg-slate-900 border border-slate-800 pl-12 pr-4 py-3 rounded-xl outline-none focus:border-blue-500">
+                    <div id="contenedorProgreso" class="mt-6 hidden space-y-2">
+                        <div class="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <span>Procesando Líneas del Archivo...</span>
+                            <span id="txtPorcentaje">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-800">
+                            <div id="barraProgreso" class="bg-blue-500 h-full w-0 transition-all duration-100"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
-                            <tr>
-                                <th class="p-6">Fecha Registro</th>
-                                <th class="p-6">Identificación de Precinto</th>
-                                <th class="p-6">Nodo / Ubicación</th>
-                                <th class="p-6">Estado</th>
-                                <th class="p-6 text-center">Gestión</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaCuerpo" class="divide-y divide-slate-800/50"></tbody>
-                    </table>
-                </div>
-            </section>
+                </section>
+
+                <section class="glass rounded-[2rem] overflow-hidden">
+                    <div class="p-8 border-b border-slate-800">
+                        <h4 class="text-lg font-bold">Previsualización de Carga Masiva (<span id="txtPreviaCount" class="text-amber-400">0</span> filas detectadas)</h4>
+                    </div>
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest sticky top-0 backdrop-blur-md">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Identificador de Sello</th>
+                                    <th class="p-4">Nodo / Ubicación</th>
+                                    <th class="p-4">Estado Asignado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaPrevisualizacion" class="divide-y divide-slate-800/50 text-sm text-slate-400">
+                                <tr>
+                                    <td colspan="4" class="p-8 text-center text-slate-600">Ningún archivo cargado aún. Sube un archivo con columnas: Fecha, Identificador, Ubicación, Estado.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE MULTIUSUARIOS (Mantenidos exactamente igual)
-        const USUARIOS = {
-            "SCRUZ": "Scruz31.",
-            "GCON": "Gcon31.",
-            "Invitado": "isp99"
+        // CONFIGURACIÓN DE MULTIUSUARIOS (Intactos como pediste)
+        const USUARIOS = { "SCRUZ": "Scruz31.", "GCON": "Gcon31.", "Invitado": "isp99" };
+        
+        let db;
+        let registrosMasivosTemp = [];
+        let paginaActual = 1;
+        const filasPorPagina = 15;
+        let totalRegistrosGlobal = 0;
+
+        // INICIALIZACIÓN DE INDEXEDDB (Soporta Gigabytes de información)
+        const request = indexedDB.open("CDR_Scruz_DB", 1);
+        request.onupgradeneeded = function(e) {
+            let dbInst = e.target.result;
+            if (!dbInst.objectStoreNames.contains("precintos")) {
+                let store = dbInst.createObjectStore("precintos", { keyPath: "id", autoIncrement: true });
+                store.createIndex("numero", "numero", { unique: false });
+            }
+        };
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            cargarEstadisticasYTabla();
         };
 
         function checkLogin() {
             const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pass').value;
-            
             if(USUARIOS[u] && USUARIOS[u] === p) {
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('dashboardMain').classList.remove('hidden');
@@ -204,27 +255,199 @@
 
         function logout() { sessionStorage.clear(); location.reload(); }
 
-        let precintos = JSON.parse(localStorage.getItem('precintos_data')) || [];
+        function cambiarVista(vista) {
+            if (vista === 'inventario') {
+                document.getElementById('vistaInventario').classList.remove('hidden');
+                document.getElementById('vistaCargaMasiva').classList.add('hidden');
+                document.getElementById('txtModuloTitulo').innerText = "Panel Técnico";
+                document.getElementById('btnNavInventario').className = "flex items-center gap-3 text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 shadow-inner cursor-pointer transition";
+                document.getElementById('btnNavCarga').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition";
+                cargarEstadisticasYTabla();
+            } else {
+                document.getElementById('vistaInventario').classList.add('hidden');
+                document.getElementById('vistaCargaMasiva').classList.remove('hidden');
+                document.getElementById('txtModuloTitulo').innerText = "Carga de Datos Masiva";
+                document.getElementById('btnNavInventario').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition";
+                document.getElementById('btnNavCarga').className = "flex items-center gap-3 text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 shadow-inner cursor-pointer transition";
+            }
+        }
 
-        function actualizarDashboard() {
-            const cuerpo = document.getElementById('tablaCuerpo');
+        // LECTURA ASÍNCRONA DE SUPER BASES DE DATOS CSV
+        function procesarArchivoMasivo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('contenedorProgreso').classList.remove('hidden');
+            registrosMasivosTemp = [];
             
-            let total = precintos.length;
-            let instalados = precintos.filter(p => p.estado === 'Instalado').length;
-            let stock = precintos.filter(p => p.estado === 'En Stock').length;
-            let danados = precintos.filter(p => p.estado === 'Dañado').length;
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                const lineas = e.target.result.split(/\r?\n/);
+                let cursor = 1; // Omitir cabecera
+                const loteTamaño = 2000; // Fragmentar lectura para no congelar la UI
+                
+                function procesarPedazo() {
+                    const fin = Math.min(cursor + loteTamaño, lineas.length);
+                    const fechaPorDefecto = new Date().toLocaleString();
 
-            document.getElementById('statTotal').innerText = total;
-            document.getElementById('cardTotal').innerText = total;
-            document.getElementById('cardInstalados').innerText = instalados;
-            document.getElementById('cardStock').innerText = stock;
-            document.getElementById('cardDanados').innerText = danados;
+                    for (let i = cursor; i < fin; i++) {
+                        const linea = lineas[i].trim();
+                        if (!linea) continue;
 
+                        const columnas = linea.split(',').map(col => col.replace(/^["']|["']$/g, '').trim());
+                        if (columnas.length >= 2 && columnas[1]) {
+                            registrosMasivosTemp.push({
+                                fecha: columnas[0] || fechaPorDefecto,
+                                numero: columnas[1],
+                                detalle: columnas[2] || "No especificado",
+                                estado: columnas[3] || "En Stock"
+                            });
+                        }
+                    }
+
+                    cursor = fin;
+                    const porc = Math.round((cursor / lineas.length) * 100);
+                    document.getElementById('barraProgreso').style.width = porc + "%";
+                    document.getElementById('txtPorcentaje').innerText = porc + "%";
+
+                    if (cursor < lineas.length) {
+                        requestAnimationFrame(procesarPedazo);
+                    } else {
+                        // Carga finalizada a memoria intermedia
+                        document.getElementById('txtPreviaCount').innerText = registrosMasivosTemp.length;
+                        inyectarTablaPrevisualizacion();
+                        document.getElementById('btnGuardarMasivo').removeAttribute('disabled');
+                    }
+                }
+                procesarPedazo();
+            };
+            lector.readAsText(file, "UTF-8");
+        }
+
+        function inyectarTablaPrevisualizacion() {
+            const tbody = document.getElementById('tablaPrevisualizacion');
+            tbody.innerHTML = '';
+            // Mostrar solo los primeros 50 en la vista previa por performance
+            const limiteVisual = registrosMasivosTemp.slice(0, 50);
+            
+            limiteVisual.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-4 text-xs font-mono">${r.fecha}</td>
+                        <td class="p-4 font-bold text-white">${r.numero}</td>
+                        <td class="p-4">${r.detalle}</td>
+                        <td class="p-4"><span class="px-2 py-0.5 rounded-md text-xs bg-slate-800">${r.estado}</span></td>
+                    </tr>
+                `;
+            });
+            if(registrosMasivosTemp.length > 50) {
+                tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-blue-400 font-semibold">... Y otros ${registrosMasivosTemp.length - 50} registros más en cola ...</td></tr>`;
+            }
+        }
+
+        // TRANSACCIÓN MASIVA INDEXEDDB ATÓMICA
+        function confirmarGuardadoMasivo() {
+            if (registrosMasivosTemp.length === 0) return;
+            
+            const transaccion = db.transaction(["precintos"], "readwrite");
+            const almacen = transaccion.objectStore(["precintos"]);
+            
+            document.getElementById('txtModuloTitulo').innerText = "Inyectando a Base de Datos de gran escala...";
+            
+            registrosMasivosTemp.forEach(reg => {
+                almacen.add(reg);
+            });
+
+            transaccion.oncomplete = function() {
+                alert(`¡Éxito Absoluto! Se procesaron y guardaron de forma segura ${registrosMasivosTemp.length} registros estructurados.`);
+                registrosMasivosTemp = [];
+                document.getElementById('tablaPrevisualizacion').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-600">Inserción limpia completada.</td></tr>';
+                document.getElementById('btnGuardarMasivo').setAttribute('disabled', 'true');
+                document.getElementById('contenedorProgreso').classList.add('hidden');
+                document.getElementById('fileCargaMasiva').value = '';
+                cambiarVista('inventario');
+            };
+
+            transaccion.onerror = function() {
+                alert("Hubo un conflicto en la transacción masiva. Archivo corrupto o cancelado.");
+            };
+        }
+
+        // AGREGAR PRECINTO INDIVIDUAL
+        function registrarPrecintoIndividual() {
+            const raw = document.getElementById('inputPrecinto').value;
+            if(!raw.trim()) return;
+
+            const ids = raw.split(/[\s,;\n]+/).filter(id => id.trim() !== "");
+            const det = document.getElementById('inputDetalle').value.trim() || "No especificado";
+            const est = document.getElementById('inputEstado').value;
+            const fec = new Date().toLocaleString();
+
+            const tx = db.transaction(["precintos"], "readwrite");
+            const store = tx.objectStore("precintos");
+
+            ids.forEach(id => {
+                store.add({ fecha: fec, numero: id, detalle: det, estado: est });
+            });
+
+            tx.oncomplete = function() {
+                document.getElementById('inputPrecinto').value = '';
+                document.getElementById('inputDetalle').value = '';
+                cargarEstadisticasYTabla();
+            };
+        }
+
+        // PROCESAR CONSULTAS Y RENDERIZADO ASÍNCRONO PAGINADO
+        function cargarEstadisticasYTabla(datosFiltrados = null) {
+            if(!db) return;
+            
+            if (datosFiltrados) {
+                renderizarFilas(datosFiltrados);
+                return;
+            }
+
+            const tx = db.transaction(["precintos"], "readonly");
+            const store = tx.objectStore("precintos");
+            const reqGetAll = store.getAll();
+
+            reqGetAll.onsuccess = function(e) {
+                const todos = e.target.result;
+                totalRegistrosGlobal = todos.length;
+
+                // Estadísticas Globales inmediatas
+                let inst = 0, stk = 0, dañ = 0;
+                todos.forEach(p => {
+                    if(p.estado === 'Instalado') inst++;
+                    else if(p.estado === 'En Stock') stk++;
+                    else if(p.estado === 'Dañado') dañ++;
+                });
+
+                document.getElementById('statTotal').innerText = totalRegistrosGlobal;
+                document.getElementById('cardTotal').innerText = totalRegistrosGlobal;
+                document.getElementById('cardInstalados').innerText = inst;
+                document.getElementById('cardStock').innerText = stk;
+                document.getElementById('cardDanados').innerText = dañ;
+
+                // Reversar para ver los últimos agregados primero en la paginación
+                const ordenados = todos.slice().reverse();
+                const inicio = (paginaActual - 1) * filasPorPagina;
+                const fin = inicio + filasPorPagina;
+                
+                document.getElementById('infoPaginacion').innerText = `Mostrando registros del ${inicio + 1} al ${Math.min(fin, totalRegistrosGlobal)} de un total de ${totalRegistrosGlobal}`;
+                renderizarFilas(ordenados.slice(inicio, fin));
+            };
+        }
+
+        function renderizarFilas(lista) {
+            const cuerpo = document.getElementById('tablaCuerpo');
             cuerpo.innerHTML = '';
 
-            precintos.slice().reverse().forEach((p, index) => {
-                const realIndex = precintos.length - 1 - index;
-                
+            if (lista.length === 0) {
+                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se encontraron precintos coincidentes en la base de datos.</td></tr>';
+                return;
+            }
+
+            lista.forEach(p => {
                 let selectColors = "bg-slate-900 border-slate-700 text-slate-300";
                 if(p.estado === 'Instalado') selectColors = "bg-emerald-950/40 border-emerald-800 text-emerald-400";
                 if(p.estado === 'En Stock') selectColors = "bg-amber-950/40 border-amber-800 text-amber-400";
@@ -233,141 +456,90 @@
                 cuerpo.innerHTML += `
                     <tr class="hover:bg-blue-500/5 transition group">
                         <td class="p-6 text-xs text-slate-500 font-medium">${p.fecha}</td>
-                        <td class="p-6 font-mono font-bold text-slate-200">
-                            <span class="num-span">${p.numero}</span>
-                        </td>
+                        <td class="p-6 font-mono font-bold text-slate-200"><span class="num-span">${p.numero}</span></td>
                         <td class="p-6 text-sm font-semibold text-slate-400">${p.detalle}</td>
                         <td class="p-6">
-                            <select onchange="editarEstado(${realIndex}, this.value)" class="border text-[11px] font-bold p-2 px-3 rounded-xl outline-none cursor-pointer focus:ring-2 focus:ring-blue-500 transition ${selectColors}">
+                            <select onchange="editarEstadoBD(${p.id}, this.value)" class="border text-[11px] font-bold p-2 px-3 rounded-xl outline-none cursor-pointer focus:ring-2 focus:ring-blue-500 transition ${selectColors}">
                                 <option class="bg-slate-950 text-slate-300" value="Instalado" ${p.estado === 'Instalado' ? 'selected' : ''}>Instalado</option>
                                 <option class="bg-slate-950 text-slate-300" value="En Stock" ${p.estado === 'En Stock' ? 'selected' : ''}>En Stock</option>
                                 <option class="bg-slate-950 text-slate-300" value="Dañado" ${p.estado === 'Dañado' ? 'selected' : ''}>Dañado</option>
                             </select>
                         </td>
                         <td class="p-6 text-center">
-                            <button onclick="eliminar(${realIndex})" class="text-slate-700 hover:text-red-500 transition p-2 hover:bg-red-500/10 rounded-lg">
+                            <button onclick="eliminarFilaBD(${p.id})" class="text-slate-700 hover:text-red-500 transition p-2 hover:bg-red-500/10 rounded-lg">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </td>
                     </tr>
                 `;
             });
-            localStorage.setItem('precintos_data', JSON.stringify(precintos));
         }
 
-        function registrarPrecinto() {
-            const rawInput = document.getElementById('inputPrecinto').value;
-            if(!rawInput.trim()) return;
-            
-            const idsInput = rawInput.split(/[\s,;\n]+/).filter(id => id.trim() !== "");
-            const detalleInput = document.getElementById('inputDetalle').value.trim() || "No especificado";
-            const estadoInput = document.getElementById('inputEstado').value;
-            const fechaActual = new Date().toLocaleString();
-
-            idsInput.forEach(id => {
-                precintos.push({
-                    fecha: fechaActual,
-                    numero: id,
-                    detalle: detalleInput,
-                    estado: estadoInput
-                });
-            });
-
-            document.getElementById('inputPrecinto').value = '';
-            document.getElementById('inputDetalle').value = '';
-            
-            actualizarDashboard();
+        function cambiarPagina(dir) {
+            const limiteMaximo = Math.ceil(totalRegistrosGlobal / filasPorPagina);
+            const nuevaPag = paginaActual + dir;
+            if (nuevaPag >= 1 && nuevaPag <= limiteMaximo) {
+                paginaActual = nuevaPag;
+                cargarEstadisticasYTabla();
+            }
         }
 
-        // NUEVA FUNCIÓN: Lector Masivo Inteligente de Archivos CSV
-        function cargarMasivoCSV(event) {
-            const archivo = event.target.files[0];
-            if (!archivo) return;
-
-            const lector = new FileReader();
-            lector.onload = function(e) {
-                const contenido = e.target.result;
-                // Dividir por saltos de línea
-                const lineas = contenido.split(/\r?\n/);
-                if(lineas.length <= 1) {
-                    alert("El archivo está vacío o no contiene el formato correcto.");
-                    return;
-                }
-
-                let registrosCargados = 0;
-                const fechaActual = new Date().toLocaleString();
-
-                // Empezamos en 1 omitiendo la fila del encabezado (Fecha,Identificador,Ubicacion,Estado)
-                for (let i = 1; i < lineas.length; i++) {
-                    const linea = lineas[i].trim();
-                    if (!linea) continue; // Saltar líneas vacías
-
-                    // Dividir por comas, limpiando comillas si existieran
-                    const columnas = linea.split(',').map(col => col.replace(/^["']|["']$/g, '').trim());
-                    
-                    // Validar que al menos tengamos un identificador de precinto
-                    if (columnas.length >= 2 && columnas[1] !== "") {
-                        precintos.push({
-                            fecha: columnas[0] || fechaActual,
-                            numero: columnas[1],
-                            detalle: columnas[2] || "No especificado",
-                            estado: columnas[3] || "En Stock"
-                        });
-                        registrosCargados++;
-                    }
-                }
-
-                alert(`¡Éxito! Se cargaron de forma masiva de ${registrosCargados} precintos correctamente.`);
-                event.target.value = ''; // Limpiar el input file
-                actualizarDashboard();
+        function editarEstadoBD(id, nuevoEstado) {
+            const tx = db.transaction(["precintos"], "readwrite");
+            const store = tx.objectStore("precintos");
+            store.get(id).onsuccess = function(e) {
+                const data = e.target.result;
+                data.estado = nuevoEstado;
+                store.put(data).onsuccess = function() {
+                    cargarEstadisticasYTabla();
+                };
             };
-            lector.readAsText(archivo);
         }
 
-        function editarEstado(i, s) { 
-            precintos[i].estado = s; 
-            actualizarDashboard(); 
+        function eliminarFilaBD(id) {
+            if(confirm("¿Eliminar de forma definitiva este registro indexado?")) {
+                const tx = db.transaction(["precintos"], "readwrite");
+                tx.objectStore("precintos").delete(id).onsuccess = function() {
+                    cargarEstadisticasYTabla();
+                };
+            }
         }
 
-        function eliminar(i) { if(confirm("¿Confirmas la eliminación definitiva?")) { precintos.splice(i, 1); actualizarDashboard(); } }
-
-        function filtrarTabla() {
-            const q = document.getElementById('busqueda').value.trim();
-            const filas = document.querySelectorAll('#tablaCuerpo tr');
-            
-            filas.forEach(fila => {
-                const celda = fila.querySelector('.num-span');
-                const textoOriginal = celda.innerText;
-                
-                if (q === "") {
-                    fila.style.display = "";
-                    celda.innerHTML = textoOriginal;
-                } else if (textoOriginal.toLowerCase().includes(q.toLowerCase())) {
-                    fila.style.display = "";
-                    const regex = new RegExp(`(${q})`, 'gi');
-                    celda.innerHTML = textoOriginal.replace(regex, '<span class="highlight-search">$1</span>');
-                } else {
-                    fila.style.display = "none";
-                }
-            });
-        }
-
-        function exportarCSV() {
-            if(precintos.length === 0) {
-                alert("No hay registros para exportar.");
+        // BÚSQUEDA ESCALABLE EN TIEMPO REAL
+        function ejecutarFiltro() {
+            const query = document.getElementById('busqueda').value.trim().toLowerCase();
+            if(!query) {
+                cargarEstadisticasYTabla();
                 return;
             }
-            let csv = "Fecha,Identificador,Ubicacion,Estado\n";
-            precintos.forEach(p => csv += `"${p.fecha}","${p.numero}","${p.detalle}","${p.estado}"\n`);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(blob);
-            a.download = `CDR_Scruz_Reporte_${new Date().toLocaleDateString()}.csv`;
-            a.click();
+
+            const tx = db.transaction(["precintos"], "readonly");
+            const req = tx.objectStore("precintos").getAll();
+            req.onsuccess = function(e) {
+                const filtrados = e.target.result.filter(p => p.numero.toLowerCase().includes(query) || p.detalle.toLowerCase().includes(query));
+                cargarEstadisticasYTabla(filtrados.reverse().slice(0, 50)); // Límite de coincidencia visual para evitar lag
+            };
+        }
+
+        // EXPORTADOR COMPLETO SIN LÍMITE DE TAMAÑO
+        function exportarHistorialCompleto() {
+            const tx = db.transaction(["precintos"], "readonly");
+            tx.objectStore("precintos").getAll().onsuccess = function(e) {
+                const lista = e.target.result;
+                if(lista.length === 0) { alert("Base de datos vacía."); return; }
+                
+                let csv = "Fecha,Identificador,Ubicacion,Estado\n";
+                lista.forEach(p => csv += `"${p.fecha}","${p.numero}","${p.detalle}","${p.estado}"\n`);
+                
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = window.URL.createObjectURL(blob);
+                a.download = `CDR_Scruz_DB_Completa_${new Date().toLocaleDateString()}.csv`;
+                a.click();
+            };
         }
 
         document.getElementById('fechaActual').innerText = new Date().toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        actualizarDashboard();
     </script>
 </body>
 </html>
