@@ -160,7 +160,7 @@
             <div id="vistaCargaMasiva" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem]">
                     <h3 class="text-xl font-bold mb-2">Importador de Archivos Masivos</h3>
-                    <p class="text-sm text-slate-400 mb-6">Sube archivos CSV de gran tamaño. El procesamiento se realiza de manera estructurada y asíncrona para no congelar la base de datos.</p>
+                    <p class="text-sm text-slate-400 mb-6">Sube archivos CSV de gran tamaño. El procesamiento se realiza de manera estructurada y asíncrona para soportar miles de registros.</p>
                     
                     <div class="flex flex-col md:flex-row gap-4 items-center">
                         <label class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.01] text-white font-bold px-6 py-4 rounded-xl cursor-pointer shadow-lg shadow-blue-500/10 transition text-center flex items-center justify-center gap-3">
@@ -210,28 +210,55 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE MULTIUSUARIOS (Intactos como pediste)
+        // CONFIGURACIÓN DE MULTIUSUARIOS (Intactos)
         const USUARIOS = { "SCRUZ": "Scruz31.", "GCON": "Gcon31.", "Invitado": "isp99" };
         
-        let db;
+        // Memoria híbrida de respaldo ultra-estable para archivos ejecutados localmente sin servidor
+        let memoriaHibridaBackup = JSON.parse(localStorage.getItem('precintos_hibridos')) || [];
+        let db = null;
         let registrosMasivosTemp = [];
         let paginaActual = 1;
         const filasPorPagina = 15;
         let totalRegistrosGlobal = 0;
 
-        // INICIALIZACIÓN DE INDEXEDDB (Soporta Gigabytes de información)
-        const request = indexedDB.open("CDR_Scruz_DB", 1);
-        request.onupgradeneeded = function(e) {
-            let dbInst = e.target.result;
-            if (!dbInst.objectStoreNames.contains("precintos")) {
-                let store = dbInst.createObjectStore("precintos", { keyPath: "id", autoIncrement: true });
-                store.createIndex("numero", "numero", { unique: false });
-            }
-        };
-        request.onsuccess = function(e) {
-            db = e.target.result;
+        // INICIALIZACIÓN DE STORAGE ROBUSTO CON FALLBACK AUTOMÁTICO
+        try {
+            const request = indexedDB.open("CDR_Scruz_DB", 1);
+            request.onupgradeneeded = function(e) {
+                let dbInst = e.target.result;
+                if (!dbInst.objectStoreNames.contains("precintos")) {
+                    dbInst.createObjectStore("precintos", { keyPath: "id", autoIncrement: true });
+                }
+            };
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                // Si hay datos híbridos antiguos, migrarlos de forma segura
+                if(memoriaHibridaBackup.length > 0) {
+                    sincronizarHibridoADB();
+                } else {
+                    cargarEstadisticasYTabla();
+                }
+            };
+            request.onerror = function() {
+                console.warn("IndexedDB bloqueado por seguridad local. Usando motor híbrido de alta densidad.");
+                cargarEstadisticasYTabla();
+            };
+        } catch(err) {
+            console.warn("Entorno local detectado. Usando motor híbrido.");
             cargarEstadisticasYTabla();
-        };
+        }
+
+        function sincronizarHibridoADB() {
+            if(!db) return;
+            const tx = db.transaction(["precintos"], "readwrite");
+            const store = tx.objectStore("precintos");
+            memoriaHibridaBackup.forEach(p => { delete p.id; store.add(p); });
+            tx.oncomplete = function() {
+                memoriaHibridaBackup = [];
+                localStorage.removeItem('precintos_hibridos');
+                cargarEstadisticasYTabla();
+            };
+        }
 
         function checkLogin() {
             const u = document.getElementById('user').value.trim();
@@ -272,7 +299,7 @@
             }
         }
 
-        // LECTURA ASÍNCRONA DE SUPER BASES DE DATOS CSV
+        // LECTURA ASÍNCRONA POR BLOQUES (Evita congelamiento de UI)
         function procesarArchivoMasivo(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -283,8 +310,8 @@
             const lector = new FileReader();
             lector.onload = function(e) {
                 const lineas = e.target.result.split(/\r?\n/);
-                let cursor = 1; // Omitir cabecera
-                const loteTamaño = 2000; // Fragmentar lectura para no congelar la UI
+                let cursor = 1; 
+                const loteTamaño = 1500; 
                 
                 function procesarPedazo() {
                     const fin = Math.min(cursor + loteTamaño, lineas.length);
@@ -313,7 +340,6 @@
                     if (cursor < lineas.length) {
                         requestAnimationFrame(procesarPedazo);
                     } else {
-                        // Carga finalizada a memoria intermedia
                         document.getElementById('txtPreviaCount').innerText = registrosMasivosTemp.length;
                         inyectarTablaPrevisualizacion();
                         document.getElementById('btnGuardarMasivo').removeAttribute('disabled');
@@ -327,8 +353,7 @@
         function inyectarTablaPrevisualizacion() {
             const tbody = document.getElementById('tablaPrevisualizacion');
             tbody.innerHTML = '';
-            // Mostrar solo los primeros 50 en la vista previa por performance
-            const limiteVisual = registrosMasivosTemp.slice(0, 50);
+            const limiteVisual = registrosMasivosTemp.slice(0, 30);
             
             limiteVisual.forEach(r => {
                 tbody.innerHTML += `
@@ -340,40 +365,58 @@
                     </tr>
                 `;
             });
-            if(registrosMasivosTemp.length > 50) {
-                tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-blue-400 font-semibold">... Y otros ${registrosMasivosTemp.length - 50} registros más en cola ...</td></tr>`;
+            if(registrosMasivosTemp.length > 30) {
+                tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-blue-400 font-semibold">... Y otros ${registrosMasivosTemp.length - 30} registros listos en cola ...</td></tr>`;
             }
         }
 
-        // TRANSACCIÓN MASIVA INDEXEDDB ATÓMICA
+        // CONTROLADOR DE INYECCIÓN LIMPIA Y VACIADO DE INTERFAZ
         function confirmarGuardadoMasivo() {
             if (registrosMasivosTemp.length === 0) return;
             
-            const transaccion = db.transaction(["precintos"], "readwrite");
-            const almacen = transaccion.objectStore(["precintos"]);
-            
-            document.getElementById('txtModuloTitulo').innerText = "Inyectando a Base de Datos de gran escala...";
-            
-            registrosMasivosTemp.forEach(reg => {
-                almacen.add(reg);
-            });
+            if (db) {
+                // Inyección via Base de Datos Nativa
+                const transaccion = db.transaction(["precintos"], "readwrite");
+                const almacen = transaccion.objectStore("precintos");
+                
+                registrosMasivosTemp.forEach(reg => { almacen.add(reg); });
 
-            transaccion.oncomplete = function() {
-                alert(`¡Éxito Absoluto! Se procesaron y guardaron de forma segura ${registrosMasivosTemp.length} registros estructurados.`);
-                registrosMasivosTemp = [];
-                document.getElementById('tablaPrevisualizacion').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-600">Inserción limpia completada.</td></tr>';
-                document.getElementById('btnGuardarMasivo').setAttribute('disabled', 'true');
-                document.getElementById('contenedorProgreso').classList.add('hidden');
-                document.getElementById('fileCargaMasiva').value = '';
-                cambiarVista('inventario');
-            };
-
-            transaccion.onerror = function() {
-                alert("Hubo un conflicto en la transacción masiva. Archivo corrupto o cancelado.");
-            };
+                transaccion.oncomplete = function() {
+                    finalizarCargaLimpia(registrosMasivosTemp.length);
+                };
+            } else {
+                // Inyección via Motor de Respaldo Híbrido Estabilizado
+                registrosMasivosTemp.forEach((reg, index) => {
+                    reg.id = Date.now() + index;
+                    memoriaHibridaBackup.push(reg);
+                });
+                localStorage.setItem('precintos_hibridos', JSON.stringify(memoriaHibridaBackup));
+                finalizarCargaLimpia(registrosMasivosTemp.length);
+            }
         }
 
-        // AGREGAR PRECINTO INDIVIDUAL
+        function finalizarCargaLimpia(cantidad) {
+            alert(`¡Éxito Absoluto! Se inyectaron de manera ordenada ${cantidad} registros a la base de datos.`);
+            
+            // LIMPIEZA TOTAL DE VARIABLES DE MEMORIA INTERMEDIA
+            registrosMasivosTemp = []; 
+            
+            // RESETEO Y LIMPIEZA ABSOLUTA DE LA INTERFAZ VISUAL
+            document.getElementById('tablaPrevisualizacion').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-600">Inserción limpia completada.</td></tr>';
+            document.getElementById('txtPreviaCount').innerText = "0";
+            document.getElementById('btnGuardarMasivo').setAttribute('disabled', 'true');
+            document.getElementById('contenedorProgreso').classList.add('hidden');
+            document.getElementById('barraProgreso').style.width = "0%";
+            document.getElementById('txtPorcentaje').innerText = "0%";
+            
+            // Limpieza del input de archivo para poder volver a subir el mismo u otro sin problemas
+            document.getElementById('fileCargaMasiva').value = ''; 
+            
+            // Volver automáticamente al inventario actualizado
+            cambiarVista('inventario');
+        }
+
+        // REGISTROS INDIVIDUALES
         function registrarPrecintoIndividual() {
             const raw = document.getElementById('inputPrecinto').value;
             if(!raw.trim()) return;
@@ -383,59 +426,65 @@
             const est = document.getElementById('inputEstado').value;
             const fec = new Date().toLocaleString();
 
-            const tx = db.transaction(["precintos"], "readwrite");
-            const store = tx.objectStore("precintos");
-
-            ids.forEach(id => {
-                store.add({ fecha: fec, numero: id, detalle: det, estado: est });
-            });
-
-            tx.oncomplete = function() {
-                document.getElementById('inputPrecinto').value = '';
-                document.getElementById('inputDetalle').value = '';
-                cargarEstadisticasYTabla();
-            };
+            if (db) {
+                const tx = db.transaction(["precintos"], "readwrite");
+                const store = tx.objectStore("precintos");
+                ids.forEach(id => { store.add({ fecha: fec, numero: id, detalle: det, estado: est }); });
+                tx.oncomplete = function() { limpiarInputsYRecargar(); };
+            } else {
+                ids.forEach((id, index) => {
+                    memoriaHibridaBackup.push({ id: Date.now() + index, fecha: fec, numero: id, detalle: det, estado: est });
+                });
+                localStorage.setItem('precintos_hibridos', JSON.stringify(memoriaHibridaBackup));
+                limpiarInputsYRecargar();
+            }
         }
 
-        // PROCESAR CONSULTAS Y RENDERIZADO ASÍNCRONO PAGINADO
+        function limpiarInputsYRecargar() {
+            document.getElementById('inputPrecinto').value = '';
+            document.getElementById('inputDetalle').value = '';
+            cargarEstadisticasYTabla();
+        }
+
+        // RENDIMIENTO DE CONSULTAS PAGINADAS
         function cargarEstadisticasYTabla(datosFiltrados = null) {
-            if(!db) return;
-            
             if (datosFiltrados) {
                 renderizarFilas(datosFiltrados);
                 return;
             }
 
-            const tx = db.transaction(["precintos"], "readonly");
-            const store = tx.objectStore("precintos");
-            const reqGetAll = store.getAll();
+            if (db) {
+                const tx = db.transaction(["precintos"], "readonly");
+                tx.objectStore("precintos").getAll().onsuccess = function(e) {
+                    procesarLoteDatos(e.target.result);
+                };
+            } else {
+                procesarLoteDatos(memoriaHibridaBackup);
+            }
+        }
 
-            reqGetAll.onsuccess = function(e) {
-                const todos = e.target.result;
-                totalRegistrosGlobal = todos.length;
+        function procesarLoteDatos(todos) {
+            totalRegistrosGlobal = todos.length;
 
-                // Estadísticas Globales inmediatas
-                let inst = 0, stk = 0, dañ = 0;
-                todos.forEach(p => {
-                    if(p.estado === 'Instalado') inst++;
-                    else if(p.estado === 'En Stock') stk++;
-                    else if(p.estado === 'Dañado') dañ++;
-                });
+            let inst = 0, stk = 0, dañ = 0;
+            todos.forEach(p => {
+                if(p.estado === 'Instalado') inst++;
+                else if(p.estado === 'En Stock') stk++;
+                else if(p.estado === 'Dañado') dañ++;
+            });
 
-                document.getElementById('statTotal').innerText = totalRegistrosGlobal;
-                document.getElementById('cardTotal').innerText = totalRegistrosGlobal;
-                document.getElementById('cardInstalados').innerText = inst;
-                document.getElementById('cardStock').innerText = stk;
-                document.getElementById('cardDanados').innerText = dañ;
+            document.getElementById('statTotal').innerText = totalRegistrosGlobal;
+            document.getElementById('cardTotal').innerText = totalRegistrosGlobal;
+            document.getElementById('cardInstalados').innerText = inst;
+            document.getElementById('cardStock').innerText = stk;
+            document.getElementById('cardDanados').innerText = dañ;
 
-                // Reversar para ver los últimos agregados primero en la paginación
-                const ordenados = todos.slice().reverse();
-                const inicio = (paginaActual - 1) * filasPorPagina;
-                const fin = inicio + filasPorPagina;
-                
-                document.getElementById('infoPaginacion').innerText = `Mostrando registros del ${inicio + 1} al ${Math.min(fin, totalRegistrosGlobal)} de un total de ${totalRegistrosGlobal}`;
-                renderizarFilas(ordenados.slice(inicio, fin));
-            };
+            const ordenados = todos.slice().reverse();
+            const inicio = (paginaActual - 1) * filasPorPagina;
+            const fin = inicio + filasPorPagina;
+            
+            document.getElementById('infoPaginacion').innerText = `Mostrando del ${totalRegistrosGlobal === 0 ? 0 : inicio + 1} al ${Math.min(fin, totalRegistrosGlobal)} de ${totalRegistrosGlobal} precintos`;
+            renderizarFilas(ordenados.slice(inicio, fin));
         }
 
         function renderizarFilas(lista) {
@@ -443,7 +492,7 @@
             cuerpo.innerHTML = '';
 
             if (lista.length === 0) {
-                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se encontraron precintos coincidentes en la base de datos.</td></tr>';
+                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No hay precintos registrados en el sistema.</td></tr>';
                 return;
             }
 
@@ -476,7 +525,7 @@
         }
 
         function cambiarPagina(dir) {
-            const limiteMaximo = Math.ceil(totalRegistrosGlobal / filasPorPagina);
+            const limiteMaximo = Math.max(1, Math.ceil(totalRegistrosGlobal / filasPorPagina));
             const nuevaPag = paginaActual + dir;
             if (nuevaPag >= 1 && nuevaPag <= limiteMaximo) {
                 paginaActual = nuevaPag;
@@ -485,27 +534,37 @@
         }
 
         function editarEstadoBD(id, nuevoEstado) {
-            const tx = db.transaction(["precintos"], "readwrite");
-            const store = tx.objectStore("precintos");
-            store.get(id).onsuccess = function(e) {
-                const data = e.target.result;
-                data.estado = nuevoEstado;
-                store.put(data).onsuccess = function() {
-                    cargarEstadisticasYTabla();
-                };
-            };
-        }
-
-        function eliminarFilaBD(id) {
-            if(confirm("¿Eliminar de forma definitiva este registro indexado?")) {
+            if (db) {
                 const tx = db.transaction(["precintos"], "readwrite");
-                tx.objectStore("precintos").delete(id).onsuccess = function() {
-                    cargarEstadisticasYTabla();
+                const store = tx.objectStore("precintos");
+                store.get(id).onsuccess = function(e) {
+                    const data = e.target.result;
+                    data.estado = nuevoEstado;
+                    store.put(data).onsuccess = function() { cargarEstadisticasYTabla(); };
                 };
+            } else {
+                const index = memoriaHibridaBackup.findIndex(p => p.id === id);
+                if(index !== -1) {
+                    memoriaHibridaBackup[index].estado = nuevoEstado;
+                    localStorage.setItem('precintos_hibridos', JSON.stringify(memoriaHibridaBackup));
+                    cargarEstadisticasYTabla();
+                }
             }
         }
 
-        // BÚSQUEDA ESCALABLE EN TIEMPO REAL
+        function eliminarFilaBD(id) {
+            if(confirm("¿Eliminar definitivamente este registro?")) {
+                if (db) {
+                    const tx = db.transaction(["precintos"], "readwrite");
+                    tx.objectStore("precintos").delete(id).onsuccess = function() { cargarEstadisticasYTabla(); };
+                } else {
+                    memoriaHibridaBackup = memoriaHibridaBackup.filter(p => p.id !== id);
+                    localStorage.setItem('precintos_hibridos', JSON.stringify(memoriaHibridaBackup));
+                    cargarEstadisticasYTabla();
+                }
+            }
+        }
+
         function ejecutarFiltro() {
             const query = document.getElementById('busqueda').value.trim().toLowerCase();
             if(!query) {
@@ -513,30 +572,36 @@
                 return;
             }
 
-            const tx = db.transaction(["precintos"], "readonly");
-            const req = tx.objectStore("precintos").getAll();
-            req.onsuccess = function(e) {
-                const filtrados = e.target.result.filter(p => p.numero.toLowerCase().includes(query) || p.detalle.toLowerCase().includes(query));
-                cargarEstadisticasYTabla(filtrados.reverse().slice(0, 50)); // Límite de coincidencia visual para evitar lag
-            };
+            if (db) {
+                db.transaction(["precintos"], "readonly").objectStore("precintos").getAll().onsuccess = function(e) {
+                    const filtrados = e.target.result.filter(p => p.numero.toLowerCase().includes(query) || p.detalle.toLowerCase().includes(query));
+                    cargarEstadisticasYTabla(filtrados.reverse().slice(0, 50));
+                };
+            } else {
+                const filtrados = memoriaHibridaBackup.filter(p => p.numero.toLowerCase().includes(query) || p.detalle.toLowerCase().includes(query));
+                cargarEstadisticasYTabla(filtrados.reverse().slice(0, 50));
+            }
         }
 
-        // EXPORTADOR COMPLETO SIN LÍMITE DE TAMAÑO
         function exportarHistorialCompleto() {
-            const tx = db.transaction(["precintos"], "readonly");
-            tx.objectStore("precintos").getAll().onsuccess = function(e) {
-                const lista = e.target.result;
-                if(lista.length === 0) { alert("Base de datos vacía."); return; }
-                
-                let csv = "Fecha,Identificador,Ubicacion,Estado\n";
-                lista.forEach(p => csv += `"${p.fecha}","${p.numero}","${p.detalle}","${p.estado}"\n`);
-                
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const a = document.createElement('a');
-                a.href = window.URL.createObjectURL(blob);
-                a.download = `CDR_Scruz_DB_Completa_${new Date().toLocaleDateString()}.csv`;
-                a.click();
-            };
+            if (db) {
+                db.transaction(["precintos"], "readonly").objectStore("precintos").getAll().onsuccess = function(e) {
+                    generarDescargaCSV(e.target.result);
+                };
+            } else {
+                generarDescargaCSV(memoriaHibridaBackup);
+            }
+        }
+
+        function generarDescargaCSV(lista) {
+            if(lista.length === 0) { alert("Base de datos vacía."); return; }
+            let csv = "\uFEFFFecha,Identificador,Ubicacion,Estado\n";
+            lista.forEach(p => csv += `"${p.fecha}","${p.numero}","${p.detalle}","${p.estado}"\n`);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = window.URL.createObjectURL(blob);
+            a.download = `CDR_Scruz_Reporte_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`;
+            a.click();
         }
 
         document.getElementById('fechaActual').innerText = new Date().toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
