@@ -2,41 +2,110 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA BLINDADO CDR</title>
+    <title>CDR Scruz - Sistema Seguro</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center">
-    <div id="status" class="text-xl font-bold">Iniciando sistema...</div>
+<body class="bg-slate-950 text-white min-h-screen p-4 md:p-10">
+    <div class="max-w-5xl mx-auto">
+        <!-- CABECERA -->
+        <div class="flex justify-between items-center mb-8 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-400">CDR Scruz - Modo Seguro</h1>
+                <p class="text-slate-500 text-sm">Protección de datos activada: Sincronización manual</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="cargarData()" class="bg-slate-800 hover:bg-slate-700 px-5 py-2 rounded-xl transition">Recargar Datos</button>
+                <button onclick="forzarSubida()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-2 rounded-xl font-bold shadow-lg shadow-emerald-900/20 transition">Guardar en Nube</button>
+            </div>
+        </div>
+
+        <!-- FORMULARIO -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 mb-8 flex gap-4">
+            <input id="newPrecinto" type="text" placeholder="ID del Precinto" class="bg-slate-950 p-4 rounded-xl border border-slate-800 w-full outline-none focus:border-blue-500">
+            <button onclick="agregarPrecinto()" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-bold">Agregar</button>
+        </div>
+
+        <!-- TABLA -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-800/50 text-slate-500 uppercase text-[10px] tracking-widest">
+                    <tr>
+                        <th class="p-6">Fecha</th>
+                        <th class="p-6">ID Precinto</th>
+                        <th class="p-6">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="lista" class="divide-y divide-slate-800"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
-        const DB_URL = "https://cdr-scruz-default-rtdb.firebaseio.com";
+        const DB_URL = "https://cdr-scruz-default-rtdb.firebaseio.com/precintos.json";
+        // Carga inmediata del respaldo local para evitar pérdida si no hay internet
+        let db = JSON.parse(localStorage.getItem('backup_precintos')) || [];
 
-        async function iniciarSistemaBlindado() {
+        // 1. CARGA (SOLO LECTURA)
+        async function cargarData() {
             try {
-                document.getElementById('status').innerText = "Conectando con base de datos...";
-                
-                // 1. Intentar obtener datos ANTES de cualquier lógica de interfaz
-                const respuesta = await fetch(`${DB_URL}/precintos.json`);
-                const data = await respuesta.json();
-
+                const res = await fetch(DB_URL);
+                const data = await res.json();
                 if (data) {
-                    console.log("Data recuperada con éxito:", data);
-                    localStorage.setItem('backup_precintos', JSON.stringify(Object.values(data)));
-                    document.getElementById('status').innerText = "Data cargada. Redirigiendo...";
-                    window.location.reload(); // Recarga una sola vez con los datos en cache
-                } else {
-                    document.getElementById('status').innerText = "Sin datos en servidor. Iniciando modo seguro.";
-                    // NO BORRAMOS, solo cargamos lo que haya en local
-                    setTimeout(() => window.location.href = "index.html", 2000);
+                    db = Object.values(data);
+                    localStorage.setItem('backup_precintos', JSON.stringify(db));
+                    renderizar();
+                    console.log("Datos actualizados desde nube");
                 }
-            } catch (err) {
-                document.getElementById('status').innerText = "Error de conexión. Usando modo offline.";
-                setTimeout(() => window.location.href = "index.html", 2000);
+            } catch(e) { 
+                console.error("Error de conexión, usando respaldo local"); 
             }
         }
 
-        // Ejecutar inmediatamente
-        iniciarSistemaBlindado();
+        // 2. AGREGAR LOCALMENTE
+        function agregarPrecinto() {
+            const input = document.getElementById('newPrecinto');
+            if(input.value.trim() !== "") {
+                db.push({numero: input.value, fecha: new Date().toLocaleDateString()});
+                localStorage.setItem('backup_precintos', JSON.stringify(db)); // Guardamos en local
+                input.value = "";
+                renderizar();
+            }
+        }
+
+        // 3. SUBIDA MANUAL (EL ÚNICO LUGAR DONDE SE SOBREESCRIBE)
+        async function forzarSubida() {
+            if(!confirm("¿Estás seguro de enviar los datos locales a la Nube? Esto sobrescribirá el servidor.")) return;
+            
+            try {
+                const res = await fetch(DB_URL, { 
+                    method: 'PUT', 
+                    body: JSON.stringify(db) 
+                });
+                if(res.ok) alert("Sincronización exitosa.");
+            } catch(e) { 
+                alert("Error: No se pudo conectar a Firebase."); 
+            }
+        }
+
+        function renderizar() {
+            const tbody = document.getElementById('lista');
+            tbody.innerHTML = db.map(i => `
+                <tr class="hover:bg-slate-800/50 transition">
+                    <td class="p-6 text-slate-400 text-sm">${i.fecha}</td>
+                    <td class="p-6 font-bold">${i.numero}</td>
+                    <td class="p-6"><button onclick="eliminarLocal('${i.numero}')" class="text-red-400 text-xs">Eliminar</button></td>
+                </tr>`).join('');
+        }
+
+        function eliminarLocal(num) {
+            db = db.filter(i => i.numero !== num);
+            localStorage.setItem('backup_precintos', JSON.stringify(db));
+            renderizar();
+        }
+
+        // Ejecutar carga al abrir
+        renderizar();
+        cargarData();
     </script>
 </body>
 </html>
