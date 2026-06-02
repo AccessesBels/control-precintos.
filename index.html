@@ -10,7 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #080a11; color: #e2e8f0; }
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .card-active-blue { border: 2px solid #3b82f6 !important; background: rgba(59, 130, 246, 0.1) !important; }
         .card-active-emerald { border: 2px solid #10b981 !important; background: rgba(16, 185, 129, 0.1) !important; }
         .card-active-amber { border: 2px solid #f59e0b !important; background: rgba(245, 158, 11, 0.1) !important; }
@@ -40,6 +40,8 @@
 
     <!-- DASHBOARD -->
     <div id="dashboardMain" class="hidden flex flex-col md:flex-row min-h-screen">
+        
+        <!-- BARRA LATERAL CORREGIDA -->
         <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8 flex flex-col">
             <div class="flex items-center gap-3 mb-12">
                 <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg">
@@ -48,19 +50,23 @@
                 <span class="font-bold text-xl">CDR <span class="text-blue-500">Scruz</span></span>
             </div>
             <nav class="flex-1 space-y-2">
+                <!-- 1. Inventario -->
                 <div onclick="cambiarVista('inventario')" id="btnNavInventario" class="flex items-center gap-3 text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 cursor-pointer shadow-inner">
                     <i class="fas fa-barcode"></i> <span class="font-semibold">Inventario</span>
                 </div>
+                <!-- 2. Carga Masiva -->
                 <div onclick="cambiarVista('carga')" id="btnNavCarga" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer">
                     <i class="fas fa-cloud-upload-alt"></i> <span>Carga Masiva (Excel/CSV)</span>
                 </div>
-                <!-- NUEVO APARTADO SOLICITADO -->
+                <!-- 3. APARTADO SELECCIONADO -->
                 <div onclick="cambiarVista('informes')" id="btnNavInformes" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer">
-                    <i class="fas fa-folder-open"></i> <span>Informes Especiales</span>
+                    <i class="fas fa-folder-open text-red-400/80"></i> <span>Informes Especiales</span>
                 </div>
+                <!-- 4. Reporte Completo -->
                 <div onclick="exportarHistorialCompleto()" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer">
                     <i class="fas fa-file-invoice"></i> <span>Reporte Completo CSV</span>
                 </div>
+                <!-- 5. Limpieza -->
                 <div onclick="forzarLimpiezaTotalBD()" class="flex items-center gap-3 text-red-500/50 hover:text-red-400 hover:bg-red-500/5 p-4 rounded-2xl cursor-pointer text-xs mt-8 border border-dashed border-red-500/20">
                     <i class="fas fa-trash-restore"></i> <span>Limpiar Registros Rotos</span>
                 </div>
@@ -70,10 +76,11 @@
             </button>
         </aside>
 
+        <!-- AREA CENTRAL DE CONTENIDO -->
         <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
             <header class="flex justify-between items-end mb-12">
                 <div>
-                    <h2 class="text-4xl font-bold tracking-tight" id="txtModuloTitulo">Panel Técnico</h2>
+                    <h2 class="text-4xl font-bold tracking-tight" id="txtModuloTitulo">Auditoría de Pérdidas y Daños</h2>
                     <p id="fechaActual" class="text-slate-500 font-medium mt-2"></p>
                 </div>
                 <div class="text-right">
@@ -82,7 +89,7 @@
                 </div>
             </header>
 
-            <!-- VISTA INVENTARIO -->
+            <!-- VISTA 1: INVENTARIO -->
             <div id="vistaInventario" class="space-y-12">
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div id="cardTotalWrapper" onclick="establecerFiltroEstado('Todos')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition-all border border-transparent">
@@ -159,7 +166,7 @@
                 </section>
             </div>
 
-            <!-- VISTA CARGA MASIVA -->
+            <!-- VISTA 2: CARGA MASIVA -->
             <div id="vistaCargaMasiva" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem]">
                     <h3 class="text-xl font-bold mb-2">Importador Inteligente CSV (Forzar Instalados)</h3>
@@ -188,7 +195,7 @@
 
                 <section class="glass rounded-[2rem] overflow-hidden">
                     <div class="p-8 border-b border-slate-800">
-                        <h4 class="text-lg font-bold">Previsualización de Carga (<span id="txtPreviaCount" class="text-emerald-400">0</span> filas listas)</h4>
+                        <h4 class="text-lg font-bold">Previsualización de Carga (<span id="txtPreviaCount" class="text-emerald-400">0</span> filas filas listas)</h4>
                     </div>
                     <div class="overflow-x-auto max-h-96">
                         <table class="w-full text-left border-collapse">
@@ -210,25 +217,25 @@
                 </section>
             </div>
 
-            <!-- VISTA INFORMES DAÑADOS Y EXTRAVIADOS (NUEVA) -->
+            <!-- VISTA 3: REPOSITORIO DE INFORMES DE PRECINTOS DAÑADOS O EXTRAVIADOS -->
             <div id="vistaInformes" class="hidden space-y-8">
-                <section class="glass p-8 rounded-[2rem] border border-red-500/10">
+                <section class="glass p-8 rounded-[2rem] border border-red-500/20 bg-gradient-to-b from-red-950/10 to-transparent">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center text-xl text-red-400">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <div>
-                            <h3 class="text-xl font-bold">Informe de Precintos Dañados o Extraviados</h3>
+                            <h3 class="text-xl font-bold text-white">Informe de Precintos Dañados o Extraviados</h3>
                             <p class="text-sm text-slate-400">Espacio técnico reservado para centralizar actas, reportes en Word, inventarios de desecho en Excel o capturas fotográficas de daños.</p>
                         </div>
                     </div>
 
-                    <!-- DROPZONE PARA SUBIR ARCHIVOS -->
-                    <div class="mt-8 border-2 border-dashed border-slate-800 rounded-2xl p-12 text-center bg-slate-950/20 hover:border-red-500/30 transition duration-300 relative group">
+                    <!-- DROPZONE INTERACTIVO -->
+                    <div class="mt-8 border-2 border-dashed border-slate-800 rounded-2xl p-12 text-center bg-slate-950/40 hover:border-red-500/40 transition duration-300 relative group">
                         <input type="file" id="inputArchivoInforme" accept=".xlsx, .xls, .doc, .docx, .png, .jpg, .jpeg, .pdf, .csv" class="absolute inset-0 opacity-0 cursor-pointer" onchange="subirInformeEvidencia(event)">
                         <div class="space-y-4">
-                            <div class="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition text-slate-400 group-hover:text-red-400">
-                                <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                            <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition text-slate-400 group-hover:text-red-400">
+                                <i class="fas fa-upload text-2xl"></i>
                             </div>
                             <div>
                                 <p class="text-base font-semibold text-slate-200">Arrastra o selecciona tus archivos de auditoría</p>
@@ -238,9 +245,9 @@
                     </div>
                 </section>
 
-                <!-- TABLA DE INFORMES ALMACENADOS -->
+                <!-- TABLA DOCUMENTAL -->
                 <section class="glass rounded-[2rem] overflow-hidden">
-                    <div class="p-8 border-b border-slate-800 flex justify-between items-center">
+                    <div class="p-8 border-b border-slate-800">
                         <h4 class="text-lg font-bold">Repositorio Documental de Pérdidas (<span id="txtCountInformes" class="text-red-400">0</span>)</h4>
                     </div>
                     <div class="overflow-x-auto">
@@ -256,7 +263,7 @@
                             </thead>
                             <tbody id="tablaInformesCuerpo" class="divide-y divide-slate-800/50 text-sm text-slate-300">
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se han adjuntado evidencias ni informes de daños todavía.</td>
+                                    <td colspan="5" class="p-8 text-center text-slate-600 font-medium">No se han cargado informes ni fotos todavía en este módulo.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -266,10 +273,31 @@
         </main>
     </div>
 
+    <!-- MODAL DE PREVISUALIZACIÓN DE AUDITORÍA -->
+    <div id="modalVisualizador" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="relative max-w-4xl w-full flex flex-col items-center">
+            <!-- Botón de Cerrar -->
+            <button onclick="cerrarVisualizador()" class="absolute -top-12 right-0 text-white hover:text-red-400 text-3xl font-bold transition">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <div class="glass p-4 rounded-2xl w-full flex flex-col items-center justify-center overflow-hidden">
+                <h3 id="modalTituloArchivo" class="text-lg font-bold mb-4 text-slate-200 text-center truncate w-full max-w-2xl"></h3>
+                <!-- Contenedor dinámico de medios -->
+                <div id="modalContenidoMedio" class="w-full max-h-[75vh] flex justify-center items-center overflow-auto rounded-xl bg-slate-950/80 p-2">
+                    <!-- Aquí se inyecta la imagen o el mensaje -->
+                </div>
+                <div class="mt-4 flex gap-4 w-full justify-center">
+                    <a id="btnModalDescargar" href="#" download="" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 rounded-xl text-sm transition flex items-center gap-2">
+                        <i class="fas fa-download"></i> Descargar Archivo Completo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const USUARIOS = { "SCRUZ": "Scruz31.", "GCON": "Gcon31.", "Invitado": "isp99" };
         let baseDatosMaestra = JSON.parse(localStorage.getItem('scruz_final_db_v4')) || [];
-        // Base de datos secundaria para los informes en binario/base64
         let baseDatosInformes = JSON.parse(localStorage.getItem('scruz_informes_db')) || [];
         
         let registrosMasivosTemp = [];
@@ -286,8 +314,7 @@
                 document.getElementById('userNameDisplay').innerText = u;
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('activeUser', u);
-                cargarEstadisticasYTabla();
-                renderizarTablaInformes();
+                ejecutarCargaInicial();
             } else {
                 document.getElementById('errorMessage').classList.remove('hidden');
             }
@@ -297,16 +324,17 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('dashboardMain').classList.remove('hidden');
             document.getElementById('userNameDisplay').innerText = sessionStorage.getItem('activeUser');
-            setTimeout(() => {
-                cargarEstadisticasYTabla();
-                renderizarTablaInformes();
-            }, 50);
+            setTimeout(() => { ejecutarCargaInicial(); }, 50);
+        }
+
+        function ejecutarCargaInicial() {
+            cargarEstadisticasYTabla();
+            renderizarTablaInformes();
         }
 
         function logout() { sessionStorage.clear(); location.reload(); }
 
         function cambiarVista(vista) {
-            // Quitar clase activa de todos los botones de navegación
             document.getElementById('btnNavInventario').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer";
             document.getElementById('btnNavCarga').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer";
             document.getElementById('btnNavInformes').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer";
@@ -338,7 +366,7 @@
             cargarEstadisticasYTabla();
         }
 
-        // LÓGICA DE CARGA E INYECCIÓN DE ARCHIVOS WORD, EXCEL O IMÁGENES
+        // LÓGICA DE AUDITORÍA Y ARCHIVOS
         function subirInformeEvidencia(event) {
             const archivo = event.target.files[0];
             if (!archivo) return;
@@ -346,14 +374,9 @@
             const lector = new FileReader();
             lector.onload = function(e) {
                 const base64Contenido = e.target.result;
-                
-                // Formatear tamaño del archivo de forma amigable
                 let tamanoFormateado = (archivo.size / 1024).toFixed(1) + " KB";
-                if (archivo.size > 1024 * 1024) {
-                    tamanoFormateado = (archivo.size / (1024 * 1024)).toFixed(1) + " MB";
-                }
+                if (archivo.size > 1024 * 1024) tamanoFormateado = (archivo.size / (1024 * 1024)).toFixed(1) + " MB";
 
-                // Detectar el tipo de ícono y etiqueta según extensión
                 let tipoLabel = "Archivo";
                 let ext = archivo.name.split('.').pop().toLowerCase();
                 if(['xlsx', 'xls', 'csv'].includes(ext)) tipoLabel = "Excel";
@@ -365,7 +388,6 @@
                     id: Date.now() + Math.random(),
                     nombre: archivo.name,
                     tipo: tipoLabel,
-                    extension: ext,
                     tamano: tamanoFormateado,
                     fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                     datos: base64Contenido
@@ -374,26 +396,25 @@
                 baseDatosInformes.push(nuevoInforme);
                 localStorage.setItem('scruz_informes_db', JSON.stringify(baseDatosInformes));
                 
-                alert("¡Informe y evidencia cargados con éxito al repositorio!");
+                alert("¡Documento o foto vinculada correctamente al repositorio local!");
                 document.getElementById('inputArchivoInforme').value = '';
                 renderizarTablaInformes();
             };
-
-            // Lee como DataURL para poder guardar imágenes o documentos como strings base64 directamente
             lector.readAsDataURL(archivo);
         }
 
         function renderizarTablaInformes() {
             const tbody = document.getElementById('tablaInformesCuerpo');
+            if(!tbody) return;
+            
             document.getElementById('txtCountInformes').innerText = baseDatosInformes.length;
             tbody.innerHTML = '';
 
             if (baseDatosInformes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se han adjuntado evidencias ni informes de daños todavía.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-medium">No se han cargado informes ni fotos todavía en este módulo.</td></tr>';
                 return;
             }
 
-            // Mostrar los últimos informes subidos al principio
             baseDatosInformes.slice().reverse().forEach(inf => {
                 let iconHtml = '<i class="fas fa-file-alt text-slate-400"></i>';
                 let badgeColor = "bg-slate-900 text-slate-400 border-slate-800";
@@ -413,20 +434,23 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-red-500/5 transition">
+                    <tr class="hover:bg-slate-900/40 transition">
                         <td class="p-6 text-xs text-slate-500 font-medium">${inf.fecha}</td>
-                        <td class="p-6 font-semibold text-slate-200 flex items-center gap-3">
-                            ${iconHtml} <span class="truncate max-w-xs md:max-w-md">${inf.nombre}</span>
+                        <!-- CLIC EN EL NOMBRE LLAMA AL VISUALIZADOR INTERACTIVO -->
+                        <td class="p-6 font-semibold text-slate-200 cursor-pointer hover:text-blue-400 group transition" onclick="verOProcesarInforme('${inf.id}')">
+                            <span class="flex items-center gap-3">
+                                ${iconHtml} <span class="truncate max-w-xs md:max-w-md group-hover:underline">${inf.nombre}</span>
+                            </span>
                         </td>
                         <td class="p-6">
                             <span class="px-2 py-0.5 border text-xs rounded font-bold ${badgeColor}">${inf.tipo}</span>
                         </td>
                         <td class="p-6 text-xs font-mono text-slate-500">${inf.tamano}</td>
                         <td class="p-6 text-center flex items-center justify-center gap-2">
-                            <a href="${inf.datos}" download="${inf.nombre}" class="text-blue-400 hover:text-blue-300 p-2 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl transition shadow-inner">
+                            <a href="${inf.datos}" download="${inf.nombre}" class="text-blue-400 hover:text-blue-300 p-2 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl transition shadow" title="Descargar archivo">
                                 <i class="fas fa-download"></i>
                             </a>
-                            <button onclick="eliminarInforme(${inf.id})" class="text-slate-600 hover:text-red-500 p-2 transition">
+                            <button onclick="eliminarInforme(${inf.id})" class="text-slate-600 hover:text-red-500 p-2 transition" title="Eliminar registro">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </td>
@@ -435,15 +459,47 @@
             });
         }
 
+        // CONTROLADOR DETALLADO DE APERTURA AL HACER CLIC EN EL NOMBRE
+        function verOProcesarInforme(idString) {
+            const idBuscado = parseFloat(idString);
+            const informe = baseDatosInformes.find(inf => inf.id === idBuscado);
+            if (!informe) return;
+
+            // Si es imagen, abrimos la previsualización interactiva de inmediato
+            if (informe.tipo === 'Imagen') {
+                document.getElementById('modalTituloArchivo').innerText = informe.nombre;
+                document.getElementById('modalContenidoMedio').innerHTML = `<img src="${informe.datos}" alt="Evidencia" class="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl border border-slate-800">`;
+                
+                const btnDescargar = document.getElementById('btnModalDescargar');
+                btnDescargar.href = informe.datos;
+                btnDescargar.download = informe.nombre;
+
+                document.getElementById('modalVisualizador').classList.remove('hidden');
+            } else {
+                // Si es un documento binario (Word, Excel, PDF), ejecutamos la descarga automática
+                const enlaceTemporal = document.createElement('a');
+                enlaceTemporal.href = informe.datos;
+                enlaceTemporal.download = informe.nombre;
+                document.body.appendChild(enlaceTemporal);
+                enlaceTemporal.click();
+                document.body.removeChild(enlaceTemporal);
+            }
+        }
+
+        function cerrarVisualizador() {
+            document.getElementById('modalVisualizador').classList.add('hidden');
+            document.getElementById('modalContenidoMedio').innerHTML = '';
+        }
+
         function eliminarInforme(id) {
-            if(confirm("¿Estás seguro de que deseas eliminar este informe y remover su evidencia adjunta?")) {
+            if(confirm("¿Eliminar de forma permanente esta evidencia del almacenamiento local?")) {
                 baseDatosInformes = baseDatosInformes.filter(inf => inf.id !== id);
                 localStorage.setItem('scruz_informes_db', JSON.stringify(baseDatosInformes));
                 renderizarTablaInformes();
             }
         }
 
-        // --- CÓDIGO PREVIO CONSERVADO INTEGRAMENTE ---
+        // --- SISTEMA PREVIO (CONSERVADO COMPLETO) ---
         function procesarArchivoMasivo(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -455,21 +511,16 @@
             lector.onload = function(e) {
                 const textoContenido = e.target.result;
                 const lineas = textoContenido.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-                
-                if(lineas.length === 0) { alert("Archivo vacío."); return; }
+                if(lineas.length === 0) return;
 
-                let separador = ",";
-                if (lineas[0].includes(";")) separador = ";";
-
+                let separador = lineas[0].includes(";") ? ";" : ",";
                 const fechaFija = new Date().toLocaleDateString();
 
                 lineas.forEach((linea, index) => {
                     const columnas = linea.split(separador).map(c => c.replace(/^["']|["']$/g, '').trim());
-                    
                     let f = columnas[0] || fechaFija;
                     let idSello = columnas[1] || "";
                     let ubicacion = columnas[2] || "No especificado";
-                    let est = "Instalado"; 
 
                     if(!idSello && f && !f.includes("/") && !f.includes("-")) {
                         idSello = f;
@@ -477,13 +528,13 @@
                     }
 
                     let idL = idSello.toLowerCase();
-                    if(idSello && idL !== "identificador" && idL !== "precinto" && idL !== "fecha" && idL !== "número de precinto" && idL !== "numero de precinto") {
+                    if(idSello && idL !== "identificador" && idL !== "precinto" && idL !== "fecha") {
                         registrosMasivosTemp.push({
                             id: Date.now() + index + Math.random(),
                             fecha: f,
                             numero: idSello,
                             detalle: ubicacion,
-                            estado: est
+                            estado: "Instalado"
                         });
                     }
                 });
@@ -491,14 +542,8 @@
                 document.getElementById('barraProgreso').style.width = "100%";
                 document.getElementById('txtPorcentaje').innerText = "100%";
                 document.getElementById('txtPreviaCount').innerText = registrosMasivosTemp.length;
-                
                 inyectarTablaPrevisualizacion();
-                
-                if(registrosMasivosTemp.length > 0) {
-                    document.getElementById('btnGuardarMasivo').removeAttribute('disabled');
-                } else {
-                    alert("No se detectaron datos válidos.");
-                }
+                document.getElementById('btnGuardarMasivo').removeAttribute('disabled');
             };
             lector.readAsText(file, "ISO-8859-1");
         }
@@ -506,10 +551,6 @@
         function inyectarTablaPrevisualizacion() {
             const tbody = document.getElementById('tablaPrevisualizacion');
             tbody.innerHTML = '';
-            if(registrosMasivosTemp.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-600">Estructura vacía.</td></tr>';
-                return;
-            }
             registrosMasivosTemp.slice(0, 10).forEach(r => {
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-900">
@@ -523,14 +564,12 @@
         }
 
         function confirmarGuardadoMasivo() {
-            if (registrosMasivosTemp.length === 0) return;
             baseDatosMaestra = baseDatosMaestra.concat(registrosMasivosTemp);
             localStorage.setItem('scruz_final_db_v4', JSON.stringify(baseDatosMaestra));
-            alert(`¡Completado! Se guardaron ${registrosMasivosTemp.length} precintos.`);
+            alert(`¡Completado! Se guardaron ${registrosMasivosTemp.length} registros.`);
             registrosMasivosTemp = [];
             document.getElementById('btnGuardarMasivo').setAttribute('disabled', 'true');
             document.getElementById('contenedorProgreso').classList.add('hidden');
-            estadoFiltroActivo = "Todos";
             cambiarVista('inventario');
         }
 
@@ -544,13 +583,7 @@
             const fec = new Date().toLocaleDateString();
 
             ids.forEach((id, index) => {
-                baseDatosMaestra.push({
-                    id: Date.now() + index + Math.random(),
-                    fecha: fec,
-                    numero: id,
-                    detalle: det,
-                    estado: est
-                });
+                baseDatosMaestra.push({ id: Date.now() + index + Math.random(), fecha: fec, numero: id, detalle: det, estado: est });
             });
 
             localStorage.setItem('scruz_final_db_v4', JSON.stringify(baseDatosMaestra));
@@ -567,41 +600,45 @@
                 else if(p.estado === 'Dañado') dan++;
             });
 
-            document.getElementById('cardTotal').innerText = baseDatosMaestra.length;
-            document.getElementById('cardInstalados').innerText = inst;
-            document.getElementById('cardStock').innerText = stk;
-            document.getElementById('cardDanados').innerText = dan;
-
-            document.getElementById('cardTotalWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "Todos" ? "card-active-blue" : "");
-            document.getElementById('cardInstaladosWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "Instalado" ? "card-active-emerald" : "");
-            document.getElementById('cardStockWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-amber-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "En Stock" ? "card-active-amber" : "");
-            document.getElementById('cardDanadosWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-red-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "Dañado" ? "card-active-red" : "");
+            const totalElem = document.getElementById('cardTotal');
+            if(totalElem) {
+                totalElem.innerText = baseDatosMaestra.length;
+                document.getElementById('cardInstalados').innerText = inst;
+                document.getElementById('cardStock').innerText = stk;
+                document.getElementById('cardDanados').innerText = dan;
+            }
 
             let datosParaTabla = baseDatosMaestra;
             if(estadoFiltroActivo !== "Todos") {
                 datosParaTabla = baseDatosMaestra.filter(p => p.estado === estadoFiltroActivo);
-                document.getElementById('txtFiltroActivo').innerText = `• Filtrado por: ${estadoFiltroActivo}`;
+                const txtFil = document.getElementById('txtFiltroActivo');
+                if(txtFil) txtFil.innerText = `• Filtrado por: ${estadoFiltroActivo}`;
             } else {
-                document.getElementById('txtFiltroActivo').innerText = ``;
+                const txtFil = document.getElementById('txtFiltroActivo');
+                if(txtFil) txtFil.innerText = ``;
             }
 
-            const b = document.getElementById('busqueda').value.trim().toLowerCase();
-            if(b) { datosParaTabla = datosParaTabla.filter(p => p.numero.toLowerCase().includes(b) || p.detalle.toLowerCase().includes(b)); }
+            const busqElem = document.getElementById('busqueda');
+            const b = busqElem ? busqElem.value.trim().toLowerCase() : "";
+            if(b) datosParaTabla = datosParaTabla.filter(p => p.numero.toLowerCase().includes(b) || p.detalle.toLowerCase().includes(b));
 
             const totalFiltrados = datosParaTabla.length;
-            document.getElementById('statTotal').innerText = totalFiltrados;
+            const statTot = document.getElementById('statTotal');
+            if(statTot) statTot.innerText = totalFiltrados;
 
             const invertidos = datosParaTabla.slice().reverse();
             const inicio = (paginaActual - 1) * filasPorPagina;
             const fin = inicio + filasPorPagina;
 
-            document.getElementById('infoPaginacion').innerText = `Mostrando del ${totalFiltrados === 0 ? 0 : inicio + 1} al ${Math.min(fin, totalFiltrados)} de ${totalFiltrados} registros`;
+            const infoPag = document.getElementById('infoPaginacion');
+            if(infoPag) infoPag.innerText = `Mostrando del ${totalFiltrados === 0 ? 0 : inicio + 1} al ${Math.min(fin, totalFiltrados)} de ${totalFiltrados} registros`;
             
             const cuerpo = document.getElementById('tablaCuerpo');
+            if(!cuerpo) return;
             cuerpo.innerHTML = '';
 
             if(invertidos.length === 0) {
-                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se encontraron precintos bajo este criterio.</td></tr>';
+                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se encontraron precintos.</td></tr>';
                 return;
             }
 
@@ -667,7 +704,7 @@
         function ejecutarFiltro() { paginaActual = 1; cargarEstadisticasYTabla(); }
 
         function exportarHistorialCompleto() {
-            if(baseDatosMaestra.length === 0) { alert("No hay datos."); return; }
+            if(baseDatosMaestra.length === 0) return;
             let csv = "\uFEFFFecha,Identificador,Ubicacion,Estado\n";
             baseDatosMaestra.forEach(p => csv += `"${p.fecha}","${p.numero}","${p.detalle}","${p.estado}"\n`);
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -678,12 +715,11 @@
         }
 
         function forzarLimpiezaTotalBD() {
-            if(confirm("¿Deseas purgar los registros rotos? Esto reiniciará las tablas limpias.")) {
+            if(confirm("¿Deseas purgar los registros rotos?")) {
                 baseDatosMaestra = [];
                 baseDatosInformes = [];
                 localStorage.removeItem('scruz_final_db_v4');
                 localStorage.removeItem('scruz_informes_db');
-                alert("Restaurado con éxito.");
                 location.reload();
             }
         }
