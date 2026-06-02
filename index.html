@@ -11,11 +11,14 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #080a11; color: #e2e8f0; }
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .hidden { display: none; }
+        .card-active-blue { border: 2px solid #3b82f6 !important; background: rgba(59, 130, 246, 0.1) !important; }
+        .card-active-emerald { border: 2px solid #10b981 !important; background: rgba(16, 185, 129, 0.1) !important; }
+        .card-active-amber { border: 2px solid #f59e0b !important; background: rgba(245, 158, 11, 0.1) !important; }
+        .card-active-red { border: 2px solid #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- LOGIN -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-black">
         <div class="glass p-12 rounded-[2rem] shadow-2xl w-full max-w-md text-center">
             <div class="mb-8">
@@ -34,7 +37,6 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboardMain" class="hidden flex flex-col md:flex-row min-h-screen">
         <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8 flex flex-col">
             <div class="flex items-center gap-3 mb-12">
@@ -74,22 +76,21 @@
                 </div>
             </header>
 
-            <!-- VISTA INVENTARIO -->
             <div id="vistaInventario" class="space-y-12">
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                    <div id="cardTotalWrapper" onclick="establecerFiltroEstado('Todos')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition-all border border-transparent">
                         <div><p class="text-xs text-slate-500 font-bold uppercase">Total Precintos</p><h3 id="cardTotal" class="text-3xl font-extrabold text-white mt-1">0</h3></div>
                         <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-boxes"></i></div>
                     </div>
-                    <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                    <div id="cardInstaladosWrapper" onclick="establecerFiltroEstado('Instalado')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500/40 transition-all border border-transparent">
                         <div><p class="text-xs text-slate-500 font-bold uppercase">Instalados</p><h3 id="cardInstalados" class="text-3xl font-extrabold text-emerald-400 mt-1">0</h3></div>
                         <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-network-wired"></i></div>
                     </div>
-                    <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                    <div id="cardStockWrapper" onclick="establecerFiltroEstado('En Stock')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-amber-500/40 transition-all border border-transparent">
                         <div><p class="text-xs text-slate-500 font-bold uppercase">En Stock</p><h3 id="cardStock" class="text-3xl font-extrabold text-amber-400 mt-1">0</h3></div>
                         <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-warehouse"></i></div>
                     </div>
-                    <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                    <div id="cardDanadosWrapper" onclick="establecerFiltroEstado('Dañado')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-red-500/40 transition-all border border-transparent">
                         <div><p class="text-xs text-slate-500 font-bold uppercase">Dañados</p><h3 id="cardDanados" class="text-3xl font-extrabold text-red-400 mt-1">0</h3></div>
                         <div class="w-12 h-12 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-tools"></i></div>
                     </div>
@@ -121,7 +122,7 @@
 
                 <section class="glass rounded-[2rem] overflow-hidden">
                     <div class="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <h3 class="text-xl font-bold">Historial de Sellos (<span id="statTotal" class="text-blue-400">0</span>)</h3>
+                        <h3 class="text-xl font-bold">Historial de Sellos (<span id="statTotal" class="text-blue-400">0</span>) <span id="txtFiltroActivo" class="text-xs font-semibold ml-2 text-slate-500"></span></h3>
                         <div class="relative w-full md:w-72">
                             <i class="fas fa-search absolute left-4 top-3.5 text-slate-500"></i>
                             <input type="text" id="busqueda" onkeyup="ejecutarFiltro()" placeholder="Buscar precinto..." class="w-full bg-slate-900 border border-slate-800 pl-12 pr-4 py-3 rounded-xl outline-none text-white">
@@ -151,7 +152,6 @@
                 </section>
             </div>
 
-            <!-- VISTA CARGA MASIVA -->
             <div id="vistaCargaMasiva" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem]">
                     <h3 class="text-xl font-bold mb-2">Importador Inteligente CSV (Forzar Instalados)</h3>
@@ -210,6 +210,7 @@
         let registrosMasivosTemp = [];
         let paginaActual = 1;
         const filasPorPagina = 15;
+        let estadoFiltroActivo = "Todos"; // Rastrea el filtro de la tarjeta seleccionada
 
         function checkLogin() {
             const u = document.getElementById('user').value.trim();
@@ -252,7 +253,12 @@
             }
         }
 
-        // PROCESADOR INTEGRAL CORREGIDO: SE OMITEN FILTROS DE CONDICIÓN DE TEXTO
+        function establecerFiltroEstado(estado) {
+            estadoFiltroActivo = estado;
+            paginaActual = 1; // Reiniciar paginación al cambiar filtro
+            cargarEstadisticasYTabla();
+        }
+
         function procesarArchivoMasivo(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -278,17 +284,13 @@
                     let f = columnas[0] || fechaFija;
                     let idSello = columnas[1] || "";
                     let ubicacion = columnas[2] || "No especificado";
-                    
-                    // SE ASIGNA "Instalado" SIN EXCEPCIÓN
                     let est = "Instalado"; 
 
-                    // Evita que las columnas movidas rompan el identificador
                     if(!idSello && f && !f.includes("/") && !f.includes("-")) {
                         idSello = f;
                         f = fechaFija;
                     }
 
-                    // Limpieza estricta de encabezados de texto del Excel
                     let idL = idSello.toLowerCase();
                     if(idSello && idL !== "identificador" && idL !== "precinto" && idL !== "fecha" && idL !== "número de precinto" && idL !== "numero de precinto") {
                         registrosMasivosTemp.push({
@@ -354,6 +356,7 @@
             document.getElementById('contenedorProgreso').classList.add('hidden');
             document.getElementById('fileCargaMasiva').value = '';
 
+            estadoFiltroActivo = "Todos";
             cambiarVista('inventario');
         }
 
@@ -382,34 +385,56 @@
             cargarEstadisticasYTabla();
         }
 
-        function cargarEstadisticasYTabla(datosFiltrados = null) {
-            const datos = datosFiltrados || baseDatosMaestra;
-            const total = datos.length;
-
+        function cargarEstadisticasYTabla() {
+            // 1. Calcular contadores fijos basados en TODA la base de datos siempre
             let inst = 0, stk = 0, dan = 0;
-            datos.forEach(p => {
+            baseDatosMaestra.forEach(p => {
                 if(p.estado === 'Instalado') inst++;
                 else if(p.estado === 'En Stock') stk++;
                 else if(p.estado === 'Dañado') dan++;
             });
 
-            document.getElementById('statTotal').innerText = total;
-            document.getElementById('cardTotal').innerText = total;
+            document.getElementById('cardTotal').innerText = baseDatosMaestra.length;
             document.getElementById('cardInstalados').innerText = inst;
             document.getElementById('cardStock').innerText = stk;
             document.getElementById('cardDanados').innerText = dan;
 
-            const invertidos = datos.slice().reverse();
+            // 2. Gestionar clases CSS de selección en las tarjetas
+            document.getElementById('cardTotalWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "Todos" ? "card-active-blue" : "");
+            document.getElementById('cardInstaladosWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "Instalado" ? "card-active-emerald" : "");
+            document.getElementById('cardStockWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-amber-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "En Stock" ? "card-active-amber" : "");
+            document.getElementById('cardDanadosWrapper').className = "glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-red-500/40 transition-all border border-transparent " + (estadoFiltroActivo === "Dañado" ? "card-active-red" : "");
+
+            // 3. Filtrar los datos que irán a la tabla según la tarjeta activa
+            let datosParaTabla = baseDatosMaestra;
+            if(estadoFiltroActivo !== "Todos") {
+                datosParaTabla = baseDatosMaestra.filter(p => p.estado === estadoFiltroActivo);
+                document.getElementById('txtFiltroActivo').innerText = `• Filtrado por: ${estadoFiltroActivo}`;
+            } else {
+                document.getElementById('txtFiltroActivo').innerText = ``;
+            }
+
+            // 4. Aplicar barra de búsqueda si tiene texto escrito
+            const b = document.getElementById('busqueda').value.trim().toLowerCase();
+            if(b) {
+                datosParaTabla = datosParaTabla.filter(p => p.numero.toLowerCase().includes(b) || p.detalle.toLowerCase().includes(b));
+            }
+
+            const totalFiltrados = datosParaTabla.length;
+            document.getElementById('statTotal').innerText = totalFiltrados;
+
+            // 5. Renderizar registros paginados (Orden cronológico invertido)
+            const invertidos = datosParaTabla.slice().reverse();
             const inicio = (paginaActual - 1) * filasPorPagina;
             const fin = inicio + filasPorPagina;
 
-            document.getElementById('infoPaginacion').innerText = `Mostrando del ${total === 0 ? 0 : inicio + 1} al ${Math.min(fin, total)} de ${total} precintos`;
+            document.getElementById('infoPaginacion').innerText = `Mostrando del ${totalFiltrados === 0 ? 0 : inicio + 1} al ${Math.min(fin, totalFiltrados)} de ${totalFiltrados} registros`;
             
             const cuerpo = document.getElementById('tablaCuerpo');
             cuerpo.innerHTML = '';
 
             if(invertidos.length === 0) {
-                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No hay precintos registrados en el sistema.</td></tr>';
+                cuerpo.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-600 font-semibold">No se encontraron precintos bajo este criterio.</td></tr>';
                 return;
             }
 
@@ -442,7 +467,16 @@
         }
 
         function cambiarPagina(dir) {
-            const maxPaginas = Math.max(1, Math.ceil(baseDatosMaestra.length / filasPorPagina));
+            let datosParaContar = baseDatosMaestra;
+            if(estadoFiltroActivo !== "Todos") {
+                datosParaContar = baseDatosMaestra.filter(p => p.estado === estadoFiltroActivo);
+            }
+            const b = document.getElementById('busqueda').value.trim().toLowerCase();
+            if(b) {
+                datosParaContar = datosParaContar.filter(p => p.numero.toLowerCase().includes(b) || p.detalle.toLowerCase().includes(b));
+            }
+
+            const maxPaginas = Math.max(1, Math.ceil(datosParaContar.length / filasPorPagina));
             const nuevaPag = paginaActual + dir;
             if(nuevaPag >= 1 && nuevaPag <= maxPaginas) {
                 paginaActual = nuevaPag;
@@ -468,10 +502,8 @@
         }
 
         function ejecutarFiltro() {
-            const b = document.getElementById('busqueda').value.trim().toLowerCase();
-            if(!b) { cargarEstadisticasYTabla(); return; }
-            const filtrados = baseDatosMaestra.filter(p => p.numero.toLowerCase().includes(b) || p.detalle.toLowerCase().includes(b));
-            cargarEstadisticasYTabla(filtrados);
+            paginaActual = 1; // Reiniciar página al buscar textualmente
+            cargarEstadisticasYTabla();
         }
 
         function exportarHistorialCompleto() {
