@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CDR Scruz - Sistema de Precintos Global</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;600;700&display=swap');
@@ -17,7 +15,6 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- LOGIN -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-black">
         <div class="glass p-12 rounded-[2rem] shadow-2xl w-full max-w-md text-center">
             <div class="mb-8">
@@ -36,10 +33,8 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboardMain" class="hidden flex flex-col md:flex-row min-h-screen">
         
-        <!-- BARRA LATERAL -->
         <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8 flex flex-col">
             <div class="flex items-center gap-3 mb-12">
                 <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg">
@@ -57,8 +52,14 @@
                 <div onclick="cambiarVista('informes')" id="btnNavInformes" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer">
                     <i class="fas fa-folder-open text-red-400/80"></i> <span>Informes Especiales</span>
                 </div>
-                <div onclick="forzarSincronizacionManual()" class="flex items-center gap-3 text-emerald-400 hover:bg-emerald-500/10 p-4 rounded-2xl cursor-pointer border border-emerald-500/20 bg-emerald-950/20">
-                    <i class="fas fa-sync-alt" id="iconSync"></i> <span class="font-semibold">Forzar Sincronización</span>
+                
+                <div class="pt-4 border-t border-slate-800/60 space-y-2">
+                    <div onclick="forzarSincronizacionManual()" class="flex items-center gap-3 text-emerald-400 hover:bg-emerald-500/10 p-4 rounded-2xl cursor-pointer border border-emerald-500/20 bg-emerald-950/20">
+                        <i class="fas fa-sync-alt" id="iconSync"></i> <span class="font-semibold">Forzar Sincronización</span>
+                    </div>
+                    <div onclick="limpiarTodaLaBaseDatos()" class="flex items-center gap-3 text-red-400 hover:bg-red-500/10 p-4 rounded-2xl cursor-pointer border border-red-500/20 bg-red-950/20">
+                        <i class="fas fa-trash-sweep"></i> <span class="font-semibold">Borrar Todo</span>
+                    </div>
                 </div>
             </nav>
             <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 mb-4 text-center">
@@ -70,7 +71,6 @@
             </button>
         </aside>
 
-        <!-- AREA CENTRAL DE CONTENIDO -->
         <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
             <header class="flex justify-between items-end mb-12">
                 <div>
@@ -83,7 +83,6 @@
                 </div>
             </header>
 
-            <!-- VISTA 1: INVENTARIO -->
             <div id="vistaInventario" class="space-y-12">
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div onclick="establecerFiltroEstado('Todos')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition">
@@ -160,7 +159,6 @@
                 </section>
             </div>
 
-            <!-- VISTA 2: CARGA MASIVA -->
             <div id="vistaCargaMasiva" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem]">
                     <h3 class="text-xl font-bold mb-2">Importador Inteligente CSV (Sincronizado)</h3>
@@ -175,7 +173,6 @@
                 </section>
             </div>
 
-            <!-- VISTA 3: INFORMES ESPECIALES -->
             <div id="vistaInformes" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem] border border-red-500/20 bg-gradient-to-b from-red-950/10 to-transparent">
                     <div class="flex items-center gap-4 mb-4">
@@ -220,7 +217,6 @@
         </main>
     </div>
 
-    <!-- VISUALIZADOR -->
     <div id="modalVisualizador" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="relative max-w-4xl w-full flex flex-col items-center">
             <button onclick="cerrarVisualizador()" class="absolute -top-12 right-0 text-white hover:text-red-400 text-3xl font-bold"><i class="fas fa-times-circle"></i></button>
@@ -284,7 +280,31 @@
             downloadAnchor.remove();
         }
 
-        // PROCESADOR DE ARCHIVOS MEJORADO CON AUTO-DETECCIÓN DE SEPARADORES (; o ,)
+        // FUNCIÓN NUEVA PARA VACIAR EL ALMACENAMIENTO CON SEGURIDAD
+        function limpiarTodaLaBaseDatos() {
+            const primerAviso = confirm("🚨 ¡ATENCIÓN! Estás a punto de borrar TODOS los precintos e informes del sistema.\n\n¿Quieres continuar?");
+            if (primerAviso) {
+                const segundoAviso = confirm("⚠️ ¿Confirmación final? Esta acción eliminará los datos de la memoria local permanentemente y no se puede deshacer.");
+                if (segundoAviso) {
+                    baseDatosMaestra = [];
+                    baseDatosInformes = [];
+                    guardarDatosInternos();
+                    
+                    // Actualizar UI
+                    paginaActual = 1;
+                    estadoFiltroActivo = "Todos";
+                    cargarEstadisticasYTabla();
+                    renderizarTablaInformes();
+                    
+                    if(document.getElementById('lblCsvStatus')) {
+                        document.getElementById('lblCsvStatus').className = "text-sm font-bold text-red-400";
+                        document.getElementById('lblCsvStatus').innerText = "Base de datos completamente vaciada.";
+                    }
+                    alert("Sistema reiniciado con éxito. Base de datos vacía.");
+                }
+            }
+        }
+
         function procesarArchivoMasivo(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -293,7 +313,6 @@
             reader.onload = function(e) {
                 const text = e.target.result;
                 
-                // Si es un JSON de respaldo global
                 if (file.name.endsWith('.json')) {
                     try {
                         const parsed = JSON.parse(text);
@@ -302,6 +321,7 @@
                         guardarDatosInternos();
                         cargarEstadisticasYTabla();
                         renderizarTablaInformes();
+                        document.getElementById('lblCsvStatus').className = "text-sm font-bold text-emerald-400";
                         document.getElementById('lblCsvStatus').innerText = "¡Base de datos JSON cargada correctamente!";
                     } catch (err) {
                         alert("Error al leer el archivo JSON.");
@@ -309,7 +329,6 @@
                     return;
                 }
 
-                // SI ES CSV (PROCESADOR ULTRA TOLERANTE)
                 const lineas = text.split(/\r?\n/);
                 let cargados = 0;
                 const fec = new Date().toLocaleDateString();
@@ -318,18 +337,15 @@
                     const linea = lineas[i].trim();
                     if (!linea) continue;
 
-                    // Detectar si la línea usa coma o punto y coma
                     let separador = ',';
                     if (linea.includes(';')) {
                         separador = ';';
                     }
 
-                    // Separar columnas limpiando comillas extras de Excel
                     const columnas = linea.split(separador).map(col => col.replace(/^["']|["']$/g, '').trim());
                     
                     if (columnas.length > 0) {
                         const num = columnas[0];
-                        // Ignorar la fila de encabezado clásica de Excel si existe
                         if (num.toLowerCase() === 'precinto' || num.toLowerCase() === 'id' || num.toLowerCase() === 'numero') {
                             continue;
                         }
@@ -353,13 +369,13 @@
                 if (cargados > 0) {
                     guardarDatosInternos();
                     cargarEstadisticasYTabla();
+                    document.getElementById('lblCsvStatus').className = "text-sm font-bold text-emerald-400";
                     document.getElementById('lblCsvStatus').innerText = `¡Se cargaron ${cargados} registros con éxito!`;
                 } else {
                     document.getElementById('lblCsvStatus').className = "text-sm font-bold text-red-400";
                     document.getElementById('lblCsvStatus').innerText = "No se encontraron registros válidos en el CSV.";
                 }
             };
-            
             reader.readAsText(file);
         }
 
