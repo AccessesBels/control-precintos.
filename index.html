@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDR Scruz - Sistema de Precintos Global</title>
-    <!-- Tailwind CSS -->
+    <title>CDR Scruz - Sistema de Precintos Global Realtime</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;600;700&display=swap');
@@ -17,7 +15,6 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- LOGIN -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-black">
         <div class="glass p-12 rounded-[2rem] shadow-2xl w-full max-w-md text-center">
             <div class="mb-8">
@@ -36,10 +33,8 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboardMain" class="hidden flex flex-col md:flex-row min-h-screen">
         
-        <!-- BARRA LATERAL (IDÉNTICA A LA IMAGEN) -->
         <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8 flex flex-col justify-between">
             <div class="space-y-12">
                 <div class="flex items-center gap-3">
@@ -61,24 +56,16 @@
                 </nav>
             </div>
 
-            <!-- CONTROLES INFERIORES DE LA BARRA LATERAL -->
             <div class="space-y-4 pt-6 border-t border-slate-800/60">
-                <div onclick="forzarSincronizacionManual()" class="flex items-center gap-3 text-emerald-400 hover:bg-emerald-500/10 p-4 rounded-2xl cursor-pointer border border-emerald-500/20 bg-emerald-950/10 transition">
-                    <i class="fas fa-sync-alt" id="iconSync"></i> <span class="font-semibold">Forzar Sincronización</span>
-                </div>
-                
-                <!-- BOTÓN CORRECTO PARA BORRAR TODA LA BASE DE DATOS -->
                 <div onclick="limpiarTodaLaBaseDatos()" class="flex items-center gap-3 text-red-400 hover:bg-red-500/10 p-4 rounded-2xl cursor-pointer border border-red-500/20 bg-red-950/10 transition">
                     <i class="fas fa-trash-alt"></i> <span class="font-semibold">Borrar Base de Datos</span>
                 </div>
-
                 <button onclick="logout()" class="w-full flex items-center gap-3 text-slate-500 hover:text-red-400 p-4 rounded-2xl transition text-sm">
                     <i class="fas fa-power-off"></i> <span>Desconectarse</span>
                 </button>
             </div>
         </aside>
 
-        <!-- AREA CENTRAL DE CONTENIDO -->
         <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
             <header class="flex justify-between items-end mb-12">
                 <div>
@@ -86,14 +73,14 @@
                     <p id="fechaActual" class="text-slate-500 font-medium mt-2"></p>
                 </div>
                 <div class="text-right">
-                    <span class="text-xs text-slate-500 uppercase font-bold">Operador</span>
-                    <p id="userNameDisplay" class="text-blue-400 font-bold"></p>
+                    <span class="text-xs text-slate-500 uppercase font-bold">Nube Status</span>
+                    <p class="text-emerald-400 font-bold flex items-center gap-2 justify-end">
+                        <span class="w-2 Event h-2 rounded-full bg-emerald-400 animate-pulse"></span> ONLINE REALTIME
+                    </p>
                 </div>
             </header>
 
-            <!-- VISTA 1: INVENTARIO -->
             <div id="vistaInventario" class="space-y-12">
-                <!-- TARJETAS DE MÉTRICAS -->
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div onclick="establecerFiltroEstado('Todos')" class="glass p-6 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition">
                         <div><p class="text-xs text-slate-500 font-bold uppercase">Total Precintos</p><h3 id="cardTotal" class="text-3xl font-extrabold text-white mt-1">0</h3></div>
@@ -113,16 +100,15 @@
                     </div>
                 </section>
 
-                <!-- FORMULARIO -->
                 <section class="glass p-8 rounded-[2rem]">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-500 uppercase">Precinto(s)</label>
-                            <input type="text" id="inputPrecinto" placeholder="ID o separados por espacios" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white outline-none focus:border-slate-700">
+                            <input type="text" id="inputPrecinto" placeholder="ID o separados por espacios" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white outline-none">
                         </div>
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-500 uppercase">Ubicación / NAP</label>
-                            <input type="text" id="inputDetalle" placeholder="Zona o Cliente" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white outline-none focus:border-slate-700">
+                            <input type="text" id="inputDetalle" placeholder="Zona o Cliente" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white outline-none">
                         </div>
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-slate-500 uppercase">Estado</label>
@@ -133,15 +119,14 @@
                             </select>
                         </div>
                         <div class="flex items-end">
-                            <button onclick="registrarPrecintoIndividual()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Guardar Datos</button>
+                            <button onclick="registrarPrecintoIndividual()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition">Guardar Datos</button>
                         </div>
                     </div>
                 </section>
 
-                <!-- TABLA HISTORIAL -->
                 <section class="glass rounded-[2rem] overflow-hidden">
                     <div class="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <h3 class="text-xl font-bold">Historial Cloud (<span id="statTotal" class="text-blue-400">0</span>) <span id="txtFiltroActivo" class="text-xs font-semibold ml-2 text-slate-500"></span></h3>
+                        <h3 class="text-xl font-bold">Historial en la Nube (<span id="statTotal" class="text-blue-400">0</span>) <span id="txtFiltroActivo" class="text-xs font-semibold ml-2 text-slate-500"></span></h3>
                         <div class="relative w-full md:w-72">
                             <i class="fas fa-search absolute left-4 top-3.5 text-slate-500"></i>
                             <input type="text" id="busqueda" onkeyup="ejecutarFiltro()" placeholder="Buscar precinto..." class="w-full bg-slate-900 border border-slate-800 pl-12 pr-4 py-3 rounded-xl outline-none text-white">
@@ -171,11 +156,10 @@
                 </section>
             </div>
 
-            <!-- VISTA 2: CARGA MASIVA -->
             <div id="vistaCargaMasiva" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem]">
-                    <h3 class="text-xl font-bold mb-2">Importador Inteligente CSV (Sincronizado)</h3>
-                    <p class="text-sm text-slate-400 mb-6">Sube registros masivos directamente al almacenamiento central global.</p>
+                    <h3 class="text-xl font-bold mb-2">Importador Inteligente Cloud</h3>
+                    <p class="text-sm text-slate-400 mb-6">Sube registros masivos directamente al servidor global en la nube.</p>
                     <div class="flex flex-col md:flex-row gap-4 items-center">
                         <label class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold px-6 py-4 rounded-xl cursor-pointer shadow-lg text-center flex items-center justify-center gap-3">
                             <i class="fas fa-file-csv text-lg"></i> Seleccionar CSV o JSON
@@ -186,7 +170,6 @@
                 </section>
             </div>
 
-            <!-- VISTA 3: INFORMES ESPECIALES -->
             <div id="vistaInformes" class="hidden space-y-8">
                 <section class="glass p-8 rounded-[2rem] border border-red-500/20 bg-gradient-to-b from-red-950/10 to-transparent">
                     <div class="flex items-center gap-4 mb-4">
@@ -194,8 +177,8 @@
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <div>
-                            <h3 class="text-xl font-bold text-white">Auditoría de Pérdidas y Daños Global</h3>
-                            <p class="text-sm text-slate-400">Las fotos o actas cargadas aquí se sincronizarán para todos los terminales.</p>
+                            <h3 class="text-xl font-bold text-white">Auditoría de Pérdidas y Daños</h3>
+                            <p class="text-sm text-slate-400">Las fotos o archivos cargados aquí se subirán a la base de datos global de inmediato.</p>
                         </div>
                     </div>
                     <div class="mt-8 border-2 border-dashed border-slate-800 rounded-2xl p-12 text-center bg-slate-950/40 hover:border-red-500/40 transition relative group">
@@ -211,7 +194,7 @@
 
                 <section class="glass rounded-[2rem] overflow-hidden">
                     <div class="p-8 border-b border-slate-800">
-                        <h4 class="text-lg font-bold">Repositorio Documental Central (<span id="txtCountInformes" class="text-red-400">0</span>)</h4>
+                        <h4 class="text-lg font-bold">Repositorio Documental Cloud (<span id="txtCountInformes" class="text-red-400">0</span>)</h4>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -231,7 +214,6 @@
         </main>
     </div>
 
-    <!-- VISUALIZADOR -->
     <div id="modalVisualizador" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="relative max-w-4xl w-full flex flex-col items-center">
             <button onclick="cerrarVisualizador()" class="absolute -top-12 right-0 text-white hover:text-red-400 text-3xl font-bold"><i class="fas fa-times-circle"></i></button>
@@ -243,15 +225,46 @@
     </div>
 
     <script>
-        const LOCAL_KEY = "cdr_backup_data";
-        const INFORMES_KEY = "cdr_backup_informes";
+        // ==========================================
+        // CONFIGURACIÓN DE TU BASE DE DATOS EN LA NUBE
+        // ==========================================
+        const FIREBASE_DB_URL = "TU_URL_DE_FIREBASE_AQUI"; 
+
         const USUARIOS = { "SCRUZ": "Scruz31.", "GCON": "Gcon31.", "Invitado": "isp99" };
-        
-        let baseDatosMaestra = JSON.parse(localStorage.getItem(LOCAL_KEY)) || [];
-        let baseDatosInformes = JSON.parse(localStorage.getItem(INFORMES_KEY)) || [];
+        let baseDatosMaestra = [];
+        let baseDatosInformes = [];
         let paginaActual = 1;
         const filasPorPagina = 15;
         let estadoFiltroActivo = "Todos";
+
+        // CONEXIÓN EN TIEMPO REAL CON EL SERVIDOR
+        function conectarServidorRealtime() {
+            if(FIREBASE_DB_URL.includes("TU_URL")) return;
+            
+            // Escuchar precintos de la nube
+            fetch(`${FIREBASE_DB_URL}/precintos.json`)
+                .then(res => res.json())
+                .then(data => {
+                    baseDatosMaestra = data ? Object.values(data) : [];
+                    cargarEstadisticasYTabla();
+                });
+
+            // Escuchar informes de la nube
+            fetch(`${FIREBASE_DB_URL}/informes.json`)
+                .then(res => res.json())
+                .then(data => {
+                    baseDatosInformes = data ? Object.values(data) : [];
+                    renderizarTablaInformes();
+                });
+        }
+
+        // Sincronizar cambios individuales con el servidor
+        function actualizarNube(nodo, dataCompleta) {
+            fetch(`${FIREBASE_DB_URL}/${nodo}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(dataCompleta)
+            }).then(() => conectarServidorRealtime());
+        }
 
         function checkLogin() {
             const u = document.getElementById('user').value.trim();
@@ -262,8 +275,7 @@
                 document.getElementById('userNameDisplay').innerText = u;
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('activeUser', u);
-                cargarEstadisticasYTabla();
-                renderizarTablaInformes();
+                conectarServidorRealtime();
             } else {
                 document.getElementById('errorMessage').classList.remove('hidden');
             }
@@ -273,136 +285,27 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('dashboardMain').classList.remove('hidden');
             document.getElementById('userNameDisplay').innerText = sessionStorage.getItem('activeUser');
-            setTimeout(() => {
-                cargarEstadisticasYTabla();
-                renderizarTablaInformes();
-            }, 100);
+            setTimeout(conectarServidorRealtime, 100);
         }
 
-        function guardarDatosInternos() {
-            localStorage.setItem(LOCAL_KEY, JSON.stringify(baseDatosMaestra));
-            localStorage.setItem(INFORMES_KEY, JSON.stringify(baseDatosInformes));
-        }
-
-        function exportarBaseDatosCompleta() {
-            const exportData = { precintos: baseDatosMaestra, informes: baseDatosInformes };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `CDR_DATABASE_GLOBAL.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        // ==========================================
-        // REESCRITA DESDE CERO: FUNCIÓN SEGURA PARA BORRAR TODO
-        // ==========================================
         function limpiarTodaLaBaseDatos() {
-            const primerAviso = confirm("🚨 ¡ATENCIÓN SCRIPT CENTRAL!\n\nEstás a punto de borrar por completo el Historial de Precintos y los Informes Especiales de la memoria local.\n\n¿Quieres continuar?");
+            const primerAviso = confirm("🚨 ¡ATENCIÓN NUBE GLOBAL!\n\nEstás a punto de borrar todos los datos del servidor central de forma permanente para todos los usuarios.\n\n¿Quieres continuar?");
             if (primerAviso) {
-                const segundoAviso = confirm("⚠️ ¿CONFIRMACIÓN FINAL?\n\nEsta acción dejará el sistema en 0 y no se puede deshacer. Se recomienda hacer una sincronización o copia antes.");
+                const segundoAviso = confirm("⚠️ ¿CONFIRMACIÓN CRÍTICA FINAL?\n\nEsta acción borrará la base de datos remota por completo.");
                 if (segundoAviso) {
-                    // Borrado completo de datos en memoria y almacenamiento
                     baseDatosMaestra = [];
                     baseDatosInformes = [];
-                    localStorage.removeItem(LOCAL_KEY);
-                    localStorage.removeItem(INFORMES_KEY);
-                    
-                    // Forzar reinicio de estado de la UI
-                    paginaActual = 1;
-                    estadoFiltroActivo = "Todos";
-                    document.getElementById('busqueda').value = "";
-                    
-                    // Renderizado inmediato del estado vacío
-                    cargarEstadisticasYTabla();
-                    renderizarTablaInformes();
-                    
-                    if(document.getElementById('lblCsvStatus')) {
-                        document.getElementById('lblCsvStatus').className = "text-sm font-bold text-red-400";
-                        document.getElementById('lblCsvStatus').innerText = "La base de datos local ha sido reiniciada.";
-                    }
-                    alert("Base de datos borrada correctamente. Contadores e historial reestablecidos a 0.");
+                    fetch(`${FIREBASE_DB_URL}/.json`, { method: 'DELETE' })
+                        .then(() => {
+                            paginaActual = 1;
+                            estadoFiltroActivo = "Todos";
+                            document.getElementById('busqueda').value = "";
+                            cargarEstadisticasYTabla();
+                            renderizarTablaInformes();
+                            alert("Base de datos remota borrada correctamente en la nube.");
+                        });
                 }
             }
-        }
-
-        function procesarArchivoMasivo(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                
-                if (file.name.endsWith('.json')) {
-                    try {
-                        const parsed = JSON.parse(text);
-                        if (parsed.precintos) baseDatosMaestra = parsed.precintos;
-                        if (parsed.informes) baseDatosInformes = parsed.informes;
-                        guardarDatosInternos();
-                        cargarEstadisticasYTabla();
-                        renderizarTablaInformes();
-                        document.getElementById('lblCsvStatus').className = "text-sm font-bold text-emerald-400";
-                        document.getElementById('lblCsvStatus').innerText = "¡Base de datos JSON cargada correctamente!";
-                    } catch (err) {
-                        alert("Error al leer el archivo JSON.");
-                    }
-                    return;
-                }
-
-                const lineas = text.split(/\r?\n/);
-                let cargados = 0;
-                const fec = new Date().toLocaleDateString();
-
-                for (let i = 0; i < lineas.length; i++) {
-                    const linea = lineas[i].trim();
-                    if (!linea) continue;
-
-                    let separador = ',';
-                    if (linea.includes(';')) {
-                        separador = ';';
-                    }
-
-                    const columnas = linea.split(separador).map(col => col.replace(/^["']|["']$/g, '').trim());
-                    
-                    if (columnas.length > 0) {
-                        const num = columnas[0];
-                        if (num.toLowerCase() === 'precinto' || num.toLowerCase() === 'id' || num.toLowerCase() === 'numero') {
-                            continue;
-                        }
-
-                        const det = columnas[1] || "Importado Masivo";
-                        const est = columnas[2] || "Instalado";
-
-                        if (num !== "") {
-                            baseDatosMaestra.push({
-                                id: Date.now() + i + Math.random(),
-                                fecha: fec,
-                                numero: num,
-                                detalle: det,
-                                estado: est
-                            });
-                            cargados++;
-                        }
-                    }
-                }
-                
-                if (cargados > 0) {
-                    guardarDatosInternos();
-                    cargarEstadisticasYTabla();
-                    document.getElementById('lblCsvStatus').className = "text-sm font-bold text-emerald-400";
-                    document.getElementById('lblCsvStatus').innerText = `¡Se cargaron ${cargados} registros con éxito!`;
-                } else {
-                    document.getElementById('lblCsvStatus').className = "text-sm font-bold text-red-400";
-                    document.getElementById('lblCsvStatus').innerText = "No se encontraron registros válidos en el CSV.";
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function forzarSincronizacionManual() {
-            exportarBaseDatosCompleta();
         }
 
         function registrarPrecintoIndividual() {
@@ -415,30 +318,28 @@
             const fec = new Date().toLocaleDateString();
 
             ids.forEach((id, index) => {
-                baseDatosMaestra.push({ id: Date.now() + index + Math.random(), fecha: fec, numero: id, detalle: det, estado: est });
+                const nuevoItem = { id: Date.now() + index + Math.random(), fecha: fec, numero: id, detalle: det, estado: est };
+                baseDatosMaestra.push(nuevoItem);
             });
 
             document.getElementById('inputPrecinto').value = '';
             document.getElementById('inputDetalle').value = '';
             
-            guardarDatosInternos();
-            cargarEstadisticasYTabla();
+            actualizarNube('precintos', baseDatosMaestra);
         }
 
         function cambiarEstadoFila(id, nuevoEstado) {
             const idx = baseDatosMaestra.findIndex(p => p.id === id);
             if(idx !== -1) {
                 baseDatosMaestra[idx].estado = nuevoEstado;
-                guardarDatosInternos();
-                cargarEstadisticasYTabla();
+                actualizarNube('precintos', baseDatosMaestra);
             }
         }
 
         function eliminarRegistro(id) {
-            if(confirm("¿Eliminar este registro?")) {
+            if(confirm("¿Eliminar este registro de la nube?")) {
                 baseDatosMaestra = baseDatosMaestra.filter(p => p.id !== id);
-                guardarDatosInternos();
-                cargarEstadisticasYTabla();
+                actualizarNube('precintos', baseDatosMaestra);
             }
         }
 
@@ -461,8 +362,7 @@
                     datos: e.target.result
                 });
 
-                guardarDatosInternos();
-                renderizarTablaInformes();
+                actualizarNube('informes', baseDatosInformes);
             };
             lector.readAsDataURL(archivo);
         }
@@ -505,11 +405,42 @@
         }
 
         function eliminarInforme(id) {
-            if(confirm("¿Eliminar este informe?")) {
+            if(confirm("¿Eliminar este informe de la nube?")) {
                 baseDatosInformes = baseDatosInformes.filter(inf => inf.id !== id);
-                guardarDatosInternos();
-                renderizarTablaInformes();
+                actualizarNube('informes', baseDatosInformes);
             }
+        }
+
+        function procesarArchivoMasivo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                if (file.name.endsWith('.json')) {
+                    try {
+                        const parsed = JSON.parse(text);
+                        if (parsed.precintos) baseDatosMaestra = parsed.precintos;
+                        if (parsed.informes) baseDatosInformes = parsed.informes;
+                        actualizarNube('precintos', baseDatosMaestra);
+                        actualizarNube('informes', baseDatosInformes);
+                    } catch (err) { alert("Error JSON"); }
+                    return;
+                }
+                // Procesar CSV lineal estándar
+                const lineas = text.split(/\r?\n/);
+                const fec = new Date().toLocaleDateString();
+                lineas.forEach((linea, i) => {
+                    if(!linea.trim()) return;
+                    const columnas = linea.split(',').map(col => col.replace(/^["']|["']$/g, '').trim());
+                    if(columnas[0] && columnas[0].toLowerCase() !== 'id') {
+                        baseDatosMaestra.push({ id: Date.now() + i + Math.random(), fecha: fec, numero: columnas[0], detalle: columnas[1]||"Importado", estado: columnas[2]||"Instalado" });
+                    }
+                });
+                actualizarNube('precintos', baseDatosMaestra);
+            };
+            reader.readAsText(file);
         }
 
         function cambiarVista(vista) {
@@ -517,7 +448,6 @@
             document.getElementById('vistaCargaMasiva').classList.add('hidden');
             document.getElementById('vistaInformes').classList.add('hidden');
             
-            // Estilos del menú
             document.getElementById('btnNavInventario').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition";
             document.getElementById('btnNavCarga').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition";
             document.getElementById('btnNavInformes').className = "flex items-center gap-3 text-slate-400 hover:bg-slate-800/50 p-4 rounded-2xl cursor-pointer transition";
@@ -560,9 +490,7 @@
             if(estadoFiltroActivo !== "Todos") {
                 datos = datos.filter(p => p.estado === estadoFiltroActivo);
                 document.getElementById('txtFiltroActivo').innerText = `(Filtrado por: ${estadoFiltroActivo})`;
-            } else {
-                document.getElementById('txtFiltroActivo').innerText = ``;
-            }
+            } else { document.getElementById('txtFiltroActivo').innerText = ``; }
             
             if(query) {
                 datos = datos.filter(p => p.numero.toLowerCase().includes(query) || p.detalle.toLowerCase().includes(query));
