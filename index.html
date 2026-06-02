@@ -15,7 +15,7 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- SCREEN DE CARGA INICIAL (Evita el parpadeo y desaparición) -->
+    <!-- SCREEN DE CARGA INICIAL -->
     <div id="loadingScreen" class="flex flex-col items-center justify-center min-h-screen bg-slate-950">
         <div class="text-center space-y-4">
             <div class="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -257,13 +257,11 @@
         const filasPorPagina = 15;
         let estadoFiltroActivo = "Todos";
 
-        // Al cargar la ventana, primero extraemos de Firebase y luego decidimos qué pantalla mostrar
         window.onload = function() {
             conectarServidorRealtimeAlInicio();
         };
 
         function conectarServidorRealtimeAlInicio() {
-            // Cargar respaldos locales rápidos por si falla internet
             const cachePrecintos = localStorage.getItem('backup_precintos');
             const cacheInformes = localStorage.getItem('backup_informes');
             if(cachePrecintos) baseDatosMaestra = JSON.parse(cachePrecintos);
@@ -274,7 +272,6 @@
                 return;
             }
 
-            // Promesas para esperar las dos bases de datos en paralelo
             const p1 = fetch(`${FIREBASE_DB_URL}/precintos.json`).then(res => res.json()).then(data => {
                 if(data) {
                     baseDatosMaestra = Object.values(data);
@@ -289,7 +286,6 @@
                 }
             }).catch(e => console.log("Usando cache local de informes"));
 
-            // Cuando ambas peticiones terminen (exitosas o fallidas), se renderiza la UI de forma fluida
             Promise.all([p1, p2]).then(() => {
                 finalizarCargaUI();
             }).catch(() => {
@@ -298,10 +294,8 @@
         }
 
         function finalizarCargaUI() {
-            // Ocultamos pantalla de carga
             document.getElementById('loadingScreen').classList.add('hidden');
             
-            // Verificamos sesión activa
             if(sessionStorage.getItem('isLoggedIn') === 'true') {
                 const usuarioActivo = sessionStorage.getItem('activeUser');
                 document.getElementById('loginScreen').classList.add('hidden');
@@ -438,7 +432,7 @@
 
             if (informe.tipo === 'Imagen') {
                 document.getElementById('modalTituloArchivo').innerText = informe.nombre;
-                document.getElementById('modalContenidoMedio').innerHTML = `<img src="${informe.datos}" class="max-w-full max-h-[70vh] rounded-lg">`;
+                document.getElementById('modalContenidoMedio').innerHTML = `<img src="${inf.datos}" class="max-w-full max-h-[70vh] rounded-lg">`;
                 document.getElementById('modalVisualizador').classList.remove('hidden');
             } else {
                 const a = document.createElement('a');
@@ -519,7 +513,7 @@
         }
 
         function cambiarVista(vista) {
-            document.getElementById('vistaInventory').parentNode.querySelector('#vistaInventario').classList.add('hidden');
+            document.getElementById('vistaInventario').classList.add('hidden');
             document.getElementById('vistaCargaMasiva').classList.add('hidden');
             document.getElementById('vistaInformes').classList.add('hidden');
             
