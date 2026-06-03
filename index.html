@@ -2,97 +2,128 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDR Scruz - Sistema Universal</title>
+    <title>CDR Scruz | Panel Técnico</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #080a11; color: #e2e8f0; }
+        .bg-card { background-color: #111827; }
+    </style>
 </head>
-<body class="bg-[#080a11] text-slate-200 min-h-screen">
+<body class="flex min-h-screen">
 
-    <div id="dashboardMain" class="flex flex-col md:flex-row min-h-screen">
-        <aside class="w-full md:w-72 bg-slate-950/50 border-r border-slate-800 p-8">
-            <h1 class="text-xl font-bold mb-10">CDR <span class="text-blue-500">Scruz</span></h1>
-            <nav class="space-y-4">
-                <div class="text-blue-400 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20"><i class="fas fa-barcode mr-2"></i> Inventario</div>
-                <div onclick="location.reload()" class="cursor-pointer text-slate-400 p-4 hover:bg-slate-800 rounded-2xl"><i class="fas fa-sync mr-2"></i> Sincronizar Nube</div>
-            </nav>
-        </aside>
+    <!-- Barra Lateral -->
+    <aside class="w-64 bg-slate-950 border-r border-slate-800 p-6">
+        <h1 class="text-xl font-bold mb-8">CDR <span class="text-blue-500">Scruz</span></h1>
+        <div onclick="location.reload()" class="bg-blue-600 p-3 rounded-xl mb-4 cursor-pointer">Inventario</div>
+        <div class="text-slate-500 p-3 hover:text-white cursor-pointer">Carga Masiva (CSV)</div>
+        <div class="text-slate-500 p-3 hover:text-white cursor-pointer">Reporte Completo</div>
+    </aside>
 
-        <main class="flex-1 p-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <p class="text-xs text-slate-500 uppercase font-bold">Total Precintos</p>
-                    <h3 id="cardTotal" class="text-3xl font-extrabold mt-1">0</h3>
-                </div>
+    <!-- Contenido Principal -->
+    <main class="flex-1 p-8">
+        <header class="mb-8">
+            <h2 class="text-2xl font-bold">Panel Técnico</h2>
+            <p class="text-sm text-slate-500">miércoles, 3 de junio de 2026</p>
+        </header>
+
+        <!-- Tarjetas de Estadísticas -->
+        <div class="grid grid-cols-4 gap-4 mb-8">
+            <div onclick="filtrar(null)" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
+                <p class="text-xs text-slate-500 uppercase">Total Precintos</p>
+                <h3 id="stat-total" class="text-2xl font-bold">0</h3>
             </div>
-
-            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 mb-8 flex gap-4">
-                <input id="in-id" type="text" placeholder="ID Precinto" class="bg-slate-950 p-3 rounded-xl border border-slate-800 w-full outline-none">
-                <input id="in-ubi" type="text" placeholder="Ubicación" class="bg-slate-950 p-3 rounded-xl border border-slate-800 w-full outline-none">
-                <button onclick="agregarNube()" class="bg-blue-600 px-8 py-3 rounded-xl font-bold">Guardar</button>
+            <div onclick="filtrar('Instalado')" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
+                <p class="text-xs text-slate-500 uppercase">Instalados</p>
+                <h3 id="stat-instalados" class="text-2xl font-bold text-green-500">0</h3>
             </div>
-
-            <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-800 text-slate-400 text-[10px] uppercase">
-                        <tr><th class="p-6">Fecha</th><th class="p-6">ID</th><th class="p-6">Ubicación</th><th class="p-6">Acción</th></tr>
-                    </thead>
-                    <tbody id="tablaCuerpo" class="divide-y divide-slate-800"></tbody>
-                </table>
+            <div onclick="filtrar('En Stock')" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
+                <p class="text-xs text-slate-500 uppercase">En Stock</p>
+                <h3 id="stat-stock" class="text-2xl font-bold text-yellow-500">0</h3>
             </div>
-        </main>
-    </div>
+            <div onclick="filtrar('Dañado')" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
+                <p class="text-xs text-slate-500 uppercase">Dañados</p>
+                <h3 id="stat-danados" class="text-2xl font-bold text-red-500">0</h3>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-card p-6 rounded-2xl border border-slate-800 mb-8 flex gap-4 items-center">
+            <input id="in-id" placeholder="ID precinto" class="bg-slate-950 p-3 rounded-lg border border-slate-800 w-1/4">
+            <input id="in-ubi" placeholder="Zona o Cliente" class="bg-slate-950 p-3 rounded-lg border border-slate-800 w-1/4">
+            <select id="in-estado" class="bg-slate-950 p-3 rounded-lg border border-slate-800 w-1/4">
+                <option>En Stock</option><option>Instalado</option><option>Dañado</option>
+            </select>
+            <button onclick="guardarDato()" class="bg-blue-600 px-8 py-3 rounded-xl font-bold hover:bg-blue-500">Guardar Datos</button>
+        </div>
+
+        <!-- Historial -->
+        <div class="bg-card p-6 rounded-2xl border border-slate-800">
+            <h3 class="font-bold mb-4">Historial de Sellos</h3>
+            <table class="w-full text-left">
+                <thead class="text-slate-500 text-xs uppercase border-b border-slate-800">
+                    <tr><th class="p-3">ID</th><th class="p-3">Ubicación</th><th class="p-3">Estado</th><th class="p-3">Acción</th></tr>
+                </thead>
+                <tbody id="tabla-body"></tbody>
+            </table>
+        </div>
+    </main>
 
     <script>
-        const API_URL = "https://cdr-scruz-default-rtdb.firebaseio.com/registros.json";
+        const DB_URL = "https://cdr-scruz-default-rtdb.firebaseio.com/precintos.json";
+        let filtroActual = null;
 
-        async function sincronizar() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                const lista = data ? Object.values(data) : [];
-                renderizar(lista);
-            } catch(e) { alert("Error de conexión"); }
-        }
-
-        async function agregarNube() {
-            const id = document.getElementById('in-id').value;
-            const ubi = document.getElementById('in-ubi').value;
-            if(!id) return;
-
-            const res = await fetch(API_URL);
-            let lista = await res.json() || [];
-            if(!Array.isArray(lista)) lista = Object.values(lista);
-
-            lista.push({ id, ubi, fecha: new Date().toLocaleDateString() });
-            await fetch(API_URL, { method: 'PUT', body: JSON.stringify(lista) });
+        async function cargarDatos() {
+            const res = await fetch(DB_URL);
+            const data = await res.json();
+            const listaCompleta = data ? Object.values(data) : [];
             
-            document.getElementById('in-id').value = "";
-            document.getElementById('in-ubi').value = "";
-            sincronizar();
-        }
+            // Estadísticas
+            document.getElementById('stat-total').innerText = listaCompleta.length;
+            document.getElementById('stat-instalados').innerText = listaCompleta.filter(i => i.estado === 'Instalado').length;
+            document.getElementById('stat-stock').innerText = listaCompleta.filter(i => i.estado === 'En Stock').length;
+            document.getElementById('stat-danados').innerText = listaCompleta.filter(i => i.estado === 'Dañado').length;
 
-        function renderizar(lista) {
-            document.getElementById('cardTotal').innerText = lista.length;
-            document.getElementById('tablaCuerpo').innerHTML = lista.map((p, index) => `
-                <tr>
-                    <td class="p-6">${p.fecha}</td>
-                    <td class="p-6 font-bold">${p.id}</td>
-                    <td class="p-6">${p.ubi}</td>
-                    <td class="p-6"><button onclick="eliminar(${index})" class="text-red-500">Eliminar</button></td>
+            // Filtrado
+            const lista = filtroActual ? listaCompleta.filter(i => i.estado === filtroActual) : listaCompleta;
+
+            const body = document.getElementById('tabla-body');
+            body.innerHTML = lista.map((i, index) => `
+                <tr class="border-b border-slate-800">
+                    <td class="p-3 font-bold">${i.id}</td>
+                    <td class="p-3">${i.ubi}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded text-xs ${i.estado === 'Instalado' ? 'bg-green-900 text-green-300' : i.estado === 'Dañado' ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}">${i.estado}</span></td>
+                    <td class="p-3"><button onclick="borrarDato(${index})" class="text-red-500 text-xs">Eliminar</button></td>
                 </tr>
             `).join('');
         }
 
-        async function eliminar(index) {
-            const res = await fetch(API_URL);
-            let lista = await res.json();
-            lista.splice(index, 1);
-            await fetch(API_URL, { method: 'PUT', body: JSON.stringify(lista) });
-            sincronizar();
+        function filtrar(estado) {
+            filtroActual = estado;
+            cargarDatos();
         }
 
-        sincronizar();
+        async function guardarDato() {
+            const id = document.getElementById('in-id').value;
+            const ubi = document.getElementById('in-ubi').value;
+            const estado = document.getElementById('in-estado').value;
+            if(!id) return alert("ID requerido");
+
+            const res = await fetch(DB_URL);
+            let lista = await res.json() || [];
+            lista.push({ id, ubi, estado });
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(lista) });
+            cargarDatos();
+        }
+
+        async function borrarDato(index) {
+            const res = await fetch(DB_URL);
+            let lista = await res.json();
+            lista.splice(index, 1);
+            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(lista) });
+            cargarDatos();
+        }
+
+        cargarDatos();
     </script>
 </body>
 </html>
