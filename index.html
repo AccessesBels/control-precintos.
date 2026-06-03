@@ -2,128 +2,311 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>CDR Scruz | Panel Técnico</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación de Precintos en Masa</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { background-color: #080a11; color: #e2e8f0; }
-        .bg-card { background-color: #111827; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
 
-    <!-- Barra Lateral -->
-    <aside class="w-64 bg-slate-950 border-r border-slate-800 p-6">
-        <h1 class="text-xl font-bold mb-8">CDR <span class="text-blue-500">Scruz</span></h1>
-        <div onclick="location.reload()" class="bg-blue-600 p-3 rounded-xl mb-4 cursor-pointer">Inventario</div>
-        <div class="text-slate-500 p-3 hover:text-white cursor-pointer">Carga Masiva (CSV)</div>
-        <div class="text-slate-500 p-3 hover:text-white cursor-pointer">Reporte Completo</div>
-    </aside>
-
-    <!-- Contenido Principal -->
-    <main class="flex-1 p-8">
-        <header class="mb-8">
-            <h2 class="text-2xl font-bold">Panel Técnico</h2>
-            <p class="text-sm text-slate-500">miércoles, 3 de junio de 2026</p>
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="mb-8 border-b border-slate-800 pb-4">
+            <h1 class="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                Sistema de Documentación de Precintos
+            </h1>
+            <p class="text-slate-400 mt-1 text-sm">Generación, validación y procesamiento masivo de seriales.</p>
         </header>
 
-        <!-- Tarjetas de Estadísticas -->
-        <div class="grid grid-cols-4 gap-4 mb-8">
-            <div onclick="filtrar(null)" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
-                <p class="text-xs text-slate-500 uppercase">Total Precintos</p>
-                <h3 id="stat-total" class="text-2xl font-bold">0</h3>
-            </div>
-            <div onclick="filtrar('Instalado')" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
-                <p class="text-xs text-slate-500 uppercase">Instalados</p>
-                <h3 id="stat-instalados" class="text-2xl font-bold text-green-500">0</h3>
-            </div>
-            <div onclick="filtrar('En Stock')" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
-                <p class="text-xs text-slate-500 uppercase">En Stock</p>
-                <h3 id="stat-stock" class="text-2xl font-bold text-yellow-500">0</h3>
-            </div>
-            <div onclick="filtrar('Dañado')" class="bg-card p-4 rounded-2xl border border-slate-800 cursor-pointer hover:border-blue-500">
-                <p class="text-xs text-slate-500 uppercase">Dañados</p>
-                <h3 id="stat-danados" class="text-2xl font-bold text-red-500">0</h3>
-            </div>
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="space-y-6 lg:col-span-1">
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-cyan-400 flex items-center gap-2">
+                        <span>📥</span> Entrada en Masa
+                    </h2>
+                    
+                    <div class="flex gap-2 mb-4 bg-slate-950 p-1 rounded-lg text-xs font-semibold">
+                        <button onclick="switchTab('manual')" id="btn-tab-manual" class="flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow">Lista / Texto</button>
+                        <button onclick="switchTab('auto')" id="btn-tab-auto" class="flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200">Secuencial</button>
+                    </div>
 
-        <!-- Formulario -->
-        <div class="bg-card p-6 rounded-2xl border border-slate-800 mb-8 flex gap-4 items-center">
-            <input id="in-id" placeholder="ID precinto" class="bg-slate-950 p-3 rounded-lg border border-slate-800 w-1/4">
-            <input id="in-ubi" placeholder="Zona o Cliente" class="bg-slate-950 p-3 rounded-lg border border-slate-800 w-1/4">
-            <select id="in-estado" class="bg-slate-950 p-3 rounded-lg border border-slate-800 w-1/4">
-                <option>En Stock</option><option>Instalado</option><option>Dañado</option>
-            </select>
-            <button onclick="guardarDato()" class="bg-blue-600 px-8 py-3 rounded-xl font-bold hover:bg-blue-500">Guardar Datos</button>
-        </div>
+                    <div id="input-manual" class="space-y-3">
+                        <label class="block text-xs text-slate-400 font-medium">Pega los números de precinto (uno por línea o separados por coma):</label>
+                        <textarea id="txt-mass-input" rows="6" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-cyan-500 text-slate-200 placeholder-slate-600" placeholder="PR-0001&#10;PR-0002&#10;PR-0003"></textarea>
+                        <button onclick="processManualInput()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-2.5 px-4 rounded-lg transition text-sm cursor-pointer">
+                            Procesar Lista
+                        </button>
+                    </div>
 
-        <!-- Historial -->
-        <div class="bg-card p-6 rounded-2xl border border-slate-800">
-            <h3 class="font-bold mb-4">Historial de Sellos</h3>
-            <table class="w-full text-left">
-                <thead class="text-slate-500 text-xs uppercase border-b border-slate-800">
-                    <tr><th class="p-3">ID</th><th class="p-3">Ubicación</th><th class="p-3">Estado</th><th class="p-3">Acción</th></tr>
-                </thead>
-                <tbody id="tabla-body"></tbody>
-            </table>
+                    <div id="input-auto" class="space-y-3 hidden">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-medium mb-1">Prefijo (Opcional)</label>
+                            <input id="seq-prefix" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="ej. PR-">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-400 font-medium mb-1">Inicio Rango</label>
+                                <input id="seq-start" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="1">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-medium mb-1">Fin Rango</label>
+                                <input id="seq-end" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="100">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 font-medium mb-1">Relleno de ceros (Padding)</label>
+                            <input id="seq-pad" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="ej. 4 para 0001" value="0">
+                        </div>
+                        <button onclick="processSequentialInput()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm cursor-pointer">
+                            Generar Secuencia
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-3">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Acciones de Datos</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1 cursor-pointer">
+                            📊 Exportar Excel
+                        </button>
+                        <button onclick="clearAllData()" class="bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 font-medium py-2 px-3 rounded-lg text-xs transition cursor-pointer">
+                            🗑️ Limpiar Todo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-4">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-slate-400 font-medium">Total Cargados</p>
+                        <p id="stat-total" class="text-2xl font-bold text-slate-100">0</p>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-emerald-400 font-medium">Válidos (Únicos)</p>
+                        <p id="stat-valid" class="text-2xl font-bold text-emerald-400">0</p>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-rose-400 font-medium">Duplicados Omitidos</p>
+                        <p id="stat-dup" class="text-2xl font-bold text-rose-400">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
+                    <div class="p-4 bg-slate-800/50 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h2 class="text-base font-bold text-slate-200">Registros en Memoria</h2>
+                        <input id="table-search" type="text" oninput="renderTable()" placeholder="Filtrar por número..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1 text-xs w-full sm:w-48 focus:outline-none focus:border-cyan-500">
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
+                                <tr>
+                                    <th class="px-4 py-3 w-12 text-center">#</th>
+                                    <th class="px-4 py-3">Código del Precinto</th>
+                                    <th class="px-4 py-3">Estado por Defecto</th>
+                                    <th class="px-4 py-3 w-16 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="precintos-table-body" class="divide-y divide-slate-700/50">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
+                                        No hay datos cargados. Usa el panel izquierdo para agregar precintos.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
+    </div>
 
     <script>
-        const DB_URL = "https://cdr-scruz-default-rtdb.firebaseio.com/precintos.json";
-        let filtroActual = null;
+        // Set de datos principal (usamos Set para garantizar búsquedas eficientes)
+        let masterData = new Set();
+        let currentTab = 'manual';
+        let duplicateCount = 0;
 
-        async function cargarDatos() {
-            const res = await fetch(DB_URL);
-            const data = await res.json();
-            const listaCompleta = data ? Object.values(data) : [];
+        // Cambiar entre pestañas de ingreso
+        function switchTab(tab) {
+            currentTab = tab;
+            const btnManual = document.getElementById('btn-tab-manual');
+            const btnAuto = document.getElementById('btn-tab-auto');
+            const viewManual = document.getElementById('input-manual');
+            const viewAuto = document.getElementById('input-auto');
+
+            if (tab === 'manual') {
+                btnManual.className = "flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow";
+                btnAuto.className = "flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200";
+                viewManual.classList.remove('hidden');
+                viewAuto.classList.add('hidden');
+            } else {
+                btnAuto.className = "flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow";
+                btnManual.className = "flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200";
+                viewAuto.classList.remove('hidden');
+                viewManual.classList.add('hidden');
+            }
+        }
+
+        // Procesar Entrada Manual (Texto)
+        function processManualInput() {
+            const rawText = document.getElementById('txt-mass-input').value;
+            if (!rawText.trim()) return alert("Por favor ingresa o pega códigos de precinto.");
+
+            // Expresión regular para separar por saltos de línea o comas y limpiar espacios vacíos
+            const items = rawText.split(/[\n,]+/).map(item => item.trim()).filter(item => item !== "");
             
-            // Estadísticas
-            document.getElementById('stat-total').innerText = listaCompleta.length;
-            document.getElementById('stat-instalados').innerText = listaCompleta.filter(i => i.estado === 'Instalado').length;
-            document.getElementById('stat-stock').innerText = listaCompleta.filter(i => i.estado === 'En Stock').length;
-            document.getElementById('stat-danados').innerText = listaCompleta.filter(i => i.estado === 'Dañado').length;
+            let addedInThisSession = 0;
+            items.forEach(item => {
+                if (masterData.has(item)) {
+                    duplicateCount++;
+                } else {
+                    masterData.add(item);
+                    addedInThisSession++;
+                }
+            });
 
-            // Filtrado
-            const lista = filtroActual ? listaCompleta.filter(i => i.estado === filtroActual) : listaCompleta;
-
-            const body = document.getElementById('tabla-body');
-            body.innerHTML = lista.map((i, index) => `
-                <tr class="border-b border-slate-800">
-                    <td class="p-3 font-bold">${i.id}</td>
-                    <td class="p-3">${i.ubi}</td>
-                    <td class="p-3"><span class="px-2 py-1 rounded text-xs ${i.estado === 'Instalado' ? 'bg-green-900 text-green-300' : i.estado === 'Dañado' ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}">${i.estado}</span></td>
-                    <td class="p-3"><button onclick="borrarDato(${index})" class="text-red-500 text-xs">Eliminar</button></td>
-                </tr>
-            `).join('');
+            document.getElementById('txt-mass-input').value = "";
+            updateDashboard();
         }
 
-        function filtrar(estado) {
-            filtroActual = estado;
-            cargarDatos();
+        // Procesar Entrada Secuencial (Automática)
+        function processSequentialInput() {
+            const prefix = document.getElementById('seq-prefix').value.trim();
+            const start = parseInt(document.getElementById('seq-start').value);
+            const end = parseInt(document.getElementById('seq-end').value);
+            const padding = parseInt(document.getElementById('seq-pad').value) || 0;
+
+            if (isNaN(start) || !Number.isInteger(start) || isNaN(end) || !Number.isInteger(end)) {
+                return alert("Por favor define números válidos para los rangos de inicio y fin.");
+            }
+            if (start > end) {
+                return alert("El número de inicio no puede ser mayor que el número de fin.");
+            }
+            if ((end - start) > 50000) {
+                return alert("Por seguridad del navegador, reduce el bloque de generación a un máximo de 50,000 registros por lote.");
+            }
+
+            for (let i = start; i <= end; i++) {
+                let numericPart = i.toString();
+                if (padding > 0) {
+                    numericPart = numericPart.padStart(padding, '0');
+                }
+                const generatedCode = `${prefix}${numericPart}`;
+
+                if (masterData.has(generatedCode)) {
+                    duplicateCount++;
+                } else {
+                    masterData.add(generatedCode);
+                }
+            }
+
+            updateDashboard();
         }
 
-        async function guardarDato() {
-            const id = document.getElementById('in-id').value;
-            const ubi = document.getElementById('in-ubi').value;
-            const estado = document.getElementById('in-estado').value;
-            if(!id) return alert("ID requerido");
-
-            const res = await fetch(DB_URL);
-            let lista = await res.json() || [];
-            lista.push({ id, ubi, estado });
-            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(lista) });
-            cargarDatos();
+        // Eliminar un precinto individual
+        function removeRecord(code) {
+            masterData.delete(code);
+            updateDashboard();
         }
 
-        async function borrarDato(index) {
-            const res = await fetch(DB_URL);
-            let lista = await res.json();
-            lista.splice(index, 1);
-            await fetch(DB_URL, { method: 'PUT', body: JSON.stringify(lista) });
-            cargarDatos();
+        // Limpiar todas las estructuras de datos
+        function clearAllData() {
+            if (masterData.size === 0) return;
+            if (confirm("¿Estás seguro de que deseas borrar todos los registros actuales?")) {
+                masterData.clear();
+                duplicateCount = 0;
+                updateDashboard();
+            }
         }
 
-        cargarDatos();
+        // Actualizar estadísticas y refrescar la UI de la tabla
+        function updateDashboard() {
+            const listSize = masterData.size;
+            document.getElementById('stat-total').innerText = listSize + duplicateCount;
+            document.getElementById('stat-valid').innerText = listSize;
+            document.getElementById('stat-dup').innerText = duplicateCount;
+            renderTable();
+        }
+
+        // Renderizar dinámicamente el listado de la tabla aplicando filtros
+        function renderTable() {
+            const tbody = document.getElementById('precintos-table-body');
+            const filterText = document.getElementById('table-search').value.toLowerCase().trim();
+            
+            tbody.innerHTML = "";
+
+            if (masterData.size === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
+                            No hay datos cargados. Usa el panel izquierdo para agregar precintos.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            // Convertir a Array para procesar búsquedas y renderizar
+            const dataArray = Array.from(masterData);
+            const filteredData = dataArray.filter(code => code.toLowerCase().includes(filterText));
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
+                            Ningún precinto coincide con el filtro de búsqueda.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            filteredData.forEach((code, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-750/40 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-2.5 text-center text-xs font-mono text-slate-500">${index + 1}</td>
+                    <td class="px-4 py-2.5 text-sm font-mono text-slate-200 tracking-wider">${code}</td>
+                    <td class="px-4 py-2.5">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                            Cargado
+                        </span>
+                    </td>
+                    <td class="px-4 py-2.5 text-center">
+                        <button onclick="removeRecord('${code}')" class="text-slate-500 hover:text-rose-400 transition p-1 cursor-pointer" title="Eliminar registro">
+                            ✕
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Exportar los datos limpios a formato Excel (.xlsx) usando SheetJS
+        function exportToExcel() {
+            if (masterData.size === 0) return alert("No hay datos en memoria para exportar.");
+
+            // Estructurar los datos mapeados para las columnas de Excel
+            const formattedRows = Array.from(masterData).map((code, index) => ({
+                "N°": index + 1,
+                "Código de Precinto": code,
+                "Estado de Carga": "Registrado N/A",
+                "Fecha de Registro": new Date().toLocaleDateString()
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(formattedRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Precintos Documentados");
+
+            // Generar archivo de descarga automática
+            XLSX.writeFile(workbook, `Reporte_Masivo_Precintos_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
     </script>
 </body>
 </html>
