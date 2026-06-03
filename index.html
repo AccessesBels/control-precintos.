@@ -3,180 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Documentación de Precintos</title>
-    <!-- Tailwind CSS -->
+    <title>Dashboard Corporativo - Control de Precintos</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- SheetJS para Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f8fafc; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center">
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased flex items-center justify-center">
 
-    <!-- 1. PANTALLA DE LOGIN -->
-    <div id="login-screen" class="w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl transition duration-300">
-        <div class="text-center mb-8">
-            <div class="h-12 w-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-500/20">
-                <span class="text-xl">🔒</span>
+    <div id="login-screen" class="w-full max-w-sm mx-4 bg-white border border-slate-200 rounded-xl p-8 shadow-sm transition-all duration-200">
+        <div class="mb-6">
+            <div class="h-9 w-9 bg-slate-900 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
-            <h2 class="text-2xl font-bold tracking-tight text-white">Control de Precintos</h2>
-            <p class="text-xs text-slate-400 mt-2">Introduce tus credenciales para acceder al sistema</p>
+            <h2 class="text-xl font-semibold text-slate-900 tracking-tight">Ingreso al Sistema</h2>
+            <p class="text-xs text-slate-500 mt-1">Módulo de control interno de precintos y seriales.</p>
         </div>
 
-        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Usuario / Operador</label>
-                <input id="login-user" type="text" required class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl p-3 text-sm text-slate-200 outline-none transition" placeholder="ej. admin">
+                <label class="block text-xs font-medium text-slate-600 mb-1.5">Usuario asignado</label>
+                <input id="login-user" type="text" required class="w-full bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-lg p-2.5 text-sm text-slate-900 outline-none transition" placeholder="Nombre de usuario">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Contraseña</label>
-                <input id="login-pass" type="password" required class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl p-3 text-sm text-slate-200 outline-none transition" placeholder="••••••••">
+                <label class="block text-xs font-medium text-slate-600 mb-1.5">Contraseña de acceso</label>
+                <input id="login-pass" type="password" required class="w-full bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-lg p-2.5 text-sm text-slate-900 outline-none transition" placeholder="••••••••">
             </div>
-            <div id="login-error" class="text-xs text-rose-400 font-medium hidden text-center">
-                ❌ Credenciales incorrectas. Intenta de nuevo.
+            <div id="login-error" class="text-xs text-red-600 font-medium hidden">
+                Los datos introducidos no son válidos.
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-xl text-sm tracking-wide shadow-lg shadow-cyan-500/10 transition cursor-pointer">
-                Iniciar Sesión
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition cursor-pointer shadow-xs">
+                Autenticar
             </button>
         </form>
     </div>
 
-    <!-- 2. PANEL PRINCIPAL DE LA APLICACIÓN (OCULTO INICIALMENTE) -->
-    <div id="app-screen" class="container mx-auto px-4 py-8 max-w-6xl hidden w-full align-top">
-        <!-- Encabezado con información de usuario -->
-        <header class="mb-8 border-b border-slate-800 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div id="app-screen" class="container mx-auto px-6 py-6 max-w-7xl hidden w-full align-top">
+        <header class="mb-6 border-b border-slate-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                    Sistema de Documentación de Precintos
-                </h1>
-                <p class="text-slate-400 mt-1 text-sm">Generación, validación y asignación de estados en lote.</p>
+                <h1 class="text-xl font-semibold text-slate-900 tracking-tight">Gestión de Precintos de Seguridad</h1>
+                <p class="text-slate-500 text-xs mt-0.5">Procesamiento por lote y auditoría de inventario físico.</p>
             </div>
-            <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
-                <div class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                <span id="user-display" class="text-xs font-mono text-slate-300"></span>
-                <button onclick="handleLogout()" class="text-xs text-rose-400 hover:text-rose-300 font-medium ml-2 pl-2 border-l border-slate-700 cursor-pointer">
-                    Salir
+            <div class="flex items-center gap-3 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-xs">
+                <span id="user-display" class="text-xs font-medium text-slate-600"></span>
+                <span class="h-3 w-px bg-slate-200"></span>
+                <button onclick="handleLogout()" class="text-xs text-red-600 hover:text-red-700 font-medium cursor-pointer">
+                    Cerrar sesión
                 </button>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Panel Izquierdo (Entradas y Acciones) -->
-            <div class="space-y-6 lg:col-span-1">
-                <!-- Entrada Masiva -->
-                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-xl">
-                    <h2 class="text-base font-bold mb-4 text-cyan-400 flex items-center gap-2">
-                        <span>📥</span> Entrada en Masa
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        Método de Registro
                     </h2>
                     
-                    <div class="flex gap-2 mb-4 bg-slate-950 p-1 rounded-lg text-xs font-semibold border border-slate-800/50">
-                        <button onclick="switchTab('manual')" id="btn-tab-manual" class="flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow">Lista / Texto</button>
-                        <button onclick="switchTab('auto')" id="btn-tab-auto" class="flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200">Secuencial</button>
+                    <div class="flex border-b border-slate-200 mb-4 text-xs font-medium">
+                        <button onclick="switchTab('manual')" id="btn-tab-manual" class="py-2 px-3 border-b-2 border-slate-900 text-slate-900 font-semibold">Lista manual</button>
+                        <button onclick="switchTab('auto')" id="btn-tab-auto" class="py-2 px-3 text-slate-400 hover:text-slate-600">Bloque secuencial</button>
                     </div>
 
-                    <!-- Texto Libre -->
                     <div id="input-manual" class="space-y-3">
-                        <label class="block text-xs text-slate-400 font-medium">Códigos de precinto (uno por línea o separados por comas):</label>
-                        <textarea id="txt-mass-input" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-cyan-500 text-slate-200 placeholder-slate-700" placeholder="PR-0001&#10;PR-0002&#10;PR-0003"></textarea>
-                        <button onclick="processManualInput()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-2.5 px-4 rounded-lg transition text-sm cursor-pointer">
-                            Procesar Lista
+                        <label class="block text-xs text-slate-500">Introduzca un código por línea o separados por comas:</label>
+                        <textarea id="txt-mass-input" rows="6" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs font-mono focus:outline-none focus:border-slate-400 focus:bg-white text-slate-800 transition" placeholder="PR-0001&#10;PR-0002"></textarea>
+                        <button onclick="processManualInput()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 px-4 rounded-lg transition text-xs cursor-pointer shadow-xs">
+                            Cargar registros
                         </button>
                     </div>
 
-                    <!-- Secuencial -->
                     <div id="input-auto" class="space-y-3 hidden">
                         <div>
-                            <label class="block text-xs text-slate-400 font-medium mb-1">Prefijo (Opcional)</label>
-                            <input id="seq-prefix" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="ej. PR-">
+                            <label class="block text-xs text-slate-500 mb-1">Prefijo de texto</label>
+                            <input id="seq-prefix" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-slate-400 focus:bg-white text-slate-800 transition" placeholder="Ej: PR-">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Inicio Rango</label>
-                                <input id="seq-start" type="number" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="1">
+                                <label class="block text-xs text-slate-500 mb-1">Rango inicial</label>
+                                <input id="seq-start" type="number" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-slate-400 focus:bg-white text-slate-800 transition" placeholder="1">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-400 font-medium mb-1">Fin Rango</label>
-                                <input id="seq-end" type="number" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="100">
+                                <label class="block text-xs text-slate-500 mb-1">Rango final</label>
+                                <input id="seq-end" type="number" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-slate-400 focus:bg-white text-slate-800 transition" placeholder="100">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 font-medium mb-1">Relleno de ceros (Padding)</label>
-                            <input id="seq-pad" type="number" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" value="0">
+                            <label class="block text-xs text-slate-500 mb-1">Formato de ceros (Padding)</label>
+                            <input id="seq-pad" type="number" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-slate-400 focus:bg-white text-slate-800 transition" value="0">
                         </div>
-                        <button onclick="processSequentialInput()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm cursor-pointer">
-                            Generar Secuencia
+                        <button onclick="processSequentialInput()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 px-4 rounded-lg transition text-xs cursor-pointer shadow-xs">
+                            Generar lote
                         </button>
                     </div>
                 </div>
 
-                <!-- Acciones de Datos -->
-                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-xl space-y-3">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Acciones globales</h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1 cursor-pointer">
-                            📊 Exportar Excel
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Acciones del Sistema</h3>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="exportToExcel()" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Exportar base de datos (.xlsx)
                         </button>
-                        <button onclick="clearAllData()" class="bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-900 font-medium py-2 px-3 rounded-lg text-xs transition cursor-pointer">
-                            🗑️ Limpiar Todo
+                        <button onclick="clearAllData()" class="w-full bg-white hover:bg-red-50 text-red-600 border border-transparent font-medium py-2 px-3 rounded-lg text-xs transition cursor-pointer text-center">
+                            Vaciar registros actuales
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Panel Derecho (Filtros Interactivos y Tabla) -->
-            <div class="lg:col-span-2 space-y-4">
-                <!-- Casillas de Filtrado Interactivo de Estados -->
+            <div class="lg:col-span-8 space-y-4">
                 <div class="grid grid-cols-3 gap-4">
-                    <!-- Botón/Filtro En Stock -->
-                    <button onclick="setStatusFilter('En Stock')" id="filter-stock" class="block w-full text-left bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-blue-500/50 transition relative overflow-hidden group cursor-pointer focus:outline-none">
-                        <p class="text-xs text-slate-400 font-medium transition group-hover:text-blue-400">📦 En Stock</p>
-                        <p id="count-stock" class="text-2xl font-bold text-blue-400 mt-1">0</p>
-                        <div id="indicator-stock" class="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 hidden"></div>
+                    <button onclick="setStatusFilter('En Stock')" id="filter-stock" class="block w-full text-left bg-white p-4 rounded-xl border border-slate-200 hover:border-slate-400 transition-all relative cursor-pointer focus:outline-none shadow-2xs">
+                        <p class="text-xs text-slate-500 font-medium">Disponibles (En Stock)</p>
+                        <p id="count-stock" class="text-xl font-bold text-slate-900 mt-1">0</p>
+                        <div id="indicator-stock" class="absolute bottom-0 left-3 right-3 h-0.5 bg-slate-900 hidden"></div>
                     </button>
-                    <!-- Botón/Filtro Instalados -->
-                    <button onclick="setStatusFilter('Instalado')" id="filter-installed" class="block w-full text-left bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-emerald-500/50 transition relative overflow-hidden group cursor-pointer focus:outline-none">
-                        <p class="text-xs text-slate-400 font-medium transition group-hover:text-emerald-400">✅ Instalados</p>
-                        <p id="count-installed" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
-                        <div id="indicator-installed" class="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500 hidden"></div>
+                    <button onclick="setStatusFilter('Instalado')" id="filter-installed" class="block w-full text-left bg-white p-4 rounded-xl border border-slate-200 hover:border-slate-400 transition-all relative cursor-pointer focus:outline-none shadow-2xs">
+                        <p class="text-xs text-slate-500 font-medium">Instalados</p>
+                        <p id="count-installed" class="text-xl font-bold text-slate-900 mt-1">0</p>
+                        <div id="indicator-installed" class="absolute bottom-0 left-3 right-3 h-0.5 bg-slate-900 hidden"></div>
                     </button>
-                    <!-- Botón/Filtro Dañados -->
-                    <button onclick="setStatusFilter('Dañado')" id="filter-damaged" class="block w-full text-left bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-rose-500/50 transition relative overflow-hidden group cursor-pointer focus:outline-none">
-                        <p class="text-xs text-slate-400 font-medium transition group-hover:text-rose-400">❌ Dañados</p>
-                        <p id="count-damaged" class="text-2xl font-bold text-rose-400 mt-1">0</p>
-                        <div id="indicator-damaged" class="absolute bottom-0 left-0 right-0 h-1 bg-rose-500 hidden"></div>
+                    <button onclick="setStatusFilter('Dañado')" id="filter-damaged" class="block w-full text-left bg-white p-4 rounded-xl border border-slate-200 hover:border-slate-400 transition-all relative cursor-pointer focus:outline-none shadow-2xs">
+                        <p class="text-xs text-slate-500 font-medium">Dañados / Descartados</p>
+                        <p id="count-damaged" class="text-xl font-bold text-slate-900 mt-1">0</p>
+                        <div id="indicator-damaged" class="absolute bottom-0 left-3 right-3 h-0.5 bg-slate-900 hidden"></div>
                     </button>
                 </div>
 
-                <!-- Contenedor de la Tabla -->
-                <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-xl overflow-hidden">
-                    <div class="p-4 bg-slate-900/50 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50/50">
                         <div class="flex items-center gap-2">
-                            <h2 class="text-base font-bold text-slate-200">Registros en Memoria</h2>
-                            <span id="active-filter-badge" onclick="setStatusFilter('all')" class="hidden text-[10px] bg-slate-800 hover:bg-slate-750 text-cyan-400 border border-slate-700 px-2 py-0.5 rounded-md font-mono cursor-pointer transition">
-                                Mostrando: <span id="active-filter-text"></span> ✕
+                            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Registros en sesión</h2>
+                            <span id="active-filter-badge" onclick="setStatusFilter('all')" class="hidden text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded-md font-medium cursor-pointer transition">
+                                Filtro: <span id="active-filter-text"></span> <span class="text-slate-400 ml-1">✕</span>
                             </span>
                         </div>
-                        <input id="table-search" type="text" oninput="renderTable()" placeholder="Filtrar por código..." class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs w-full sm:w-48 text-slate-200 focus:outline-none focus:border-cyan-500">
+                        <input id="table-search" type="text" oninput="renderTable()" placeholder="Buscar serial..." class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs w-full sm:w-48 text-slate-800 focus:outline-none focus:border-slate-400 placeholder-slate-400 shadow-2xs">
                     </div>
 
-                    <div class="overflow-x-auto max-h-[480px] custom-scroll">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-950 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
+                    <div class="overflow-x-auto max-h-[460px] custom-scroll">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-medium uppercase border-b border-slate-100 sticky top-0 z-10">
                                 <tr>
-                                    <th class="px-4 py-3 w-12 text-center">#</th>
-                                    <th class="px-4 py-3">Código del Precinto</th>
-                                    <th class="px-4 py-3">Estado actual</th>
-                                    <th class="px-4 py-3 w-16 text-center">Acción</th>
+                                    <th class="px-5 py-3 w-12 text-center">N°</th>
+                                    <th class="px-5 py-3">Código identificador</th>
+                                    <th class="px-5 py-3">Estado asignado</th>
+                                    <th class="px-5 py-3 w-16 text-center">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="precintos-table-body" class="divide-y divide-slate-800/60">
+                            <tbody id="precintos-table-body" class="divide-y divide-slate-100 text-slate-700">
                                 <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
-                                        No hay datos cargados en el sistema.
+                                    <td colspan="4" class="px-5 py-10 text-center text-slate-400 font-normal">
+                                        No se registran datos en el software. Utilice el panel izquierdo para la ingesta.
                                     </td>
                                 </tr>
                             </tbody>
@@ -187,35 +172,25 @@
         </div>
     </div>
 
-    <!-- CONTROLADOR JAVASCRIPT -->
     <script>
-        // Mapa de datos principal [Código -> Estado]
         let masterData = new Map();
         let currentTab = 'manual';
         let activeStatusFilter = 'all'; 
 
-        // Manejo del Login de Usuario
         function handleLogin(event) {
             event.preventDefault();
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value;
-            const errorDiv = document.getElementById('login-error');
 
-            // Simulación básica de credenciales
             if (user !== "" && pass !== "") {
-                errorDiv.classList.add('hidden');
                 document.getElementById('login-screen').classList.add('hidden');
                 
-                // Mostrar app
                 const appScreen = document.getElementById('app-screen');
                 appScreen.classList.remove('hidden');
-                appScreen.classList.add('grid');
-                document.body.className = "bg-slate-950 text-slate-100 min-h-screen font-sans antialiased p-0 flex items-start justify-center";
+                document.body.className = "bg-slate-50 text-slate-900 min-h-screen antialiased p-0 flex items-start justify-center";
                 
-                document.getElementById('user-display').innerText = `👤 OP: ${user.toUpperCase()}`;
+                document.getElementById('user-display').innerText = `Operador: ${user}`;
                 updateDashboard();
-            } else {
-                errorDiv.classList.remove('hidden');
             }
         }
 
@@ -226,11 +201,8 @@
             document.getElementById('table-search').value = "";
             
             document.getElementById('app-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('grid');
-            
-            const loginScreen = document.getElementById('login-screen');
-            loginScreen.classList.remove('hidden');
-            document.body.className = "bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center";
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.body.className = "bg-slate-50 text-slate-900 min-h-screen antialiased flex items-center justify-center";
             document.getElementById('login-form').reset();
         }
 
@@ -242,57 +214,47 @@
             const viewAuto = document.getElementById('input-auto');
 
             if (tab === 'manual') {
-                btnManual.className = "flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow";
-                btnAuto.className = "flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200";
+                btnManual.className = "py-2 px-3 border-b-2 border-slate-900 text-slate-900 font-semibold";
+                btnAuto.className = "py-2 px-3 text-slate-400 hover:text-slate-600";
                 viewManual.classList.remove('hidden');
                 viewAuto.classList.add('hidden');
             } else {
-                btnAuto.className = "flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow";
-                btnManual.className = "flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200";
+                btnAuto.className = "py-2 px-3 border-b-2 border-slate-900 text-slate-900 font-semibold";
+                btnManual.className = "py-2 px-3 text-slate-400 hover:text-slate-600";
                 viewAuto.classList.remove('hidden');
                 viewManual.classList.add('hidden');
             }
         }
 
-        // Procesamiento masivo por cuadro de texto
         function processManualInput() {
             const rawText = document.getElementById('txt-mass-input').value;
             if (!rawText.trim()) return;
 
             const items = rawText.split(/[\n,]+/).map(item => item.trim()).filter(item => item !== "");
-            
             items.forEach(item => {
-                if (!masterData.has(item)) {
-                    masterData.set(item, 'En Stock'); // Todo entra por defecto en Stock
-                }
+                if (!masterData.has(item)) masterData.set(item, 'En Stock');
             });
 
             document.getElementById('txt-mass-input').value = "";
             updateDashboard();
         }
 
-        // Generación Secuencial
         function processSequentialInput() {
             const prefix = document.getElementById('seq-prefix').value.trim();
             const start = parseInt(document.getElementById('seq-start').value);
             const end = parseInt(document.getElementById('seq-end').value);
             const padding = parseInt(document.getElementById('seq-pad').value) || 0;
 
-            if (isNaN(start) || isNaN(end) || start > end) {
-                return alert("Por favor, introduce un rango numérico válido.");
-            }
+            if (isNaN(start) || isNaN(end) || start > end) return alert("Rango inválido.");
 
             for (let i = start; i <= end; i++) {
                 let numericPart = i.toString().padStart(padding, '0');
                 const generatedCode = `${prefix}${numericPart}`;
-                if (!masterData.has(generatedCode)) {
-                    masterData.set(generatedCode, 'En Stock');
-                }
+                if (!masterData.has(generatedCode)) masterData.set(generatedCode, 'En Stock');
             }
             updateDashboard();
         }
 
-        // Cambiar estado de un precinto específico desde la tabla
         function updateRecordStatus(code, newStatus) {
             masterData.set(code, newStatus);
             updateDashboard();
@@ -305,20 +267,19 @@
 
         function clearAllData() {
             if (masterData.size === 0) return;
-            if (confirm("¿Limpiar por completo la base de datos de la sesión?")) {
+            if (confirm("¿Confirmar la eliminación de todos los registros actuales?")) {
                 masterData.clear();
                 activeStatusFilter = 'all';
                 updateDashboard();
             }
         }
 
-        // Establecer filtro activo según la tarjeta pulsada
         function setStatusFilter(status) {
-            activeStatusFilter = status;
+            // Si hace clic en un filtro activo, se limpia para mostrar todos
+            activeStatusFilter = (activeStatusFilter === status) ? 'all' : status;
             updateDashboard();
         }
 
-        // Cálculo de métricas y renderizado de UI
         function updateDashboard() {
             let stock = 0, installed = 0, damaged = 0;
 
@@ -328,17 +289,15 @@
                 if (status === 'Dañado') damaged++;
             });
 
-            // Actualizar contadores numéricos
             document.getElementById('count-stock').innerText = stock;
             document.getElementById('count-installed').innerText = installed;
             document.getElementById('count-damaged').innerText = damaged;
 
-            // Cambiar estilos de las tarjetas si están activas como filtros
-            document.getElementById('indicator-stock').className = `absolute bottom-0 left-0 right-0 h-1 bg-blue-500 ${activeStatusFilter === 'En Stock' ? '' : 'hidden'}`;
-            document.getElementById('indicator-installed').className = `absolute bottom-0 left-0 right-0 h-1 bg-emerald-500 ${activeStatusFilter === 'Instalado' ? '' : 'hidden'}`;
-            document.getElementById('indicator-damaged').className = `absolute bottom-0 left-0 right-0 h-1 bg-rose-500 ${activeStatusFilter === 'Dañado' ? '' : 'hidden'}`;
+            // Destacar tarjeta activa de filtro de forma sobria
+            document.getElementById('indicator-stock').className = `absolute bottom-0 left-3 right-3 h-0.5 bg-slate-900 ${activeStatusFilter === 'En Stock' ? '' : 'hidden'}`;
+            document.getElementById('indicator-installed').className = `absolute bottom-0 left-3 right-3 h-0.5 bg-slate-900 ${activeStatusFilter === 'Instalado' ? '' : 'hidden'}`;
+            document.getElementById('indicator-damaged').className = `absolute bottom-0 left-3 right-3 h-0.5 bg-slate-900 ${activeStatusFilter === 'Dañado' ? '' : 'hidden'}`;
 
-            // Control de badge de filtro activo en la tabla
             const badge = document.getElementById('active-filter-badge');
             if (activeStatusFilter !== 'all') {
                 badge.classList.remove('hidden');
@@ -350,71 +309,69 @@
             renderTable();
         }
 
-        // Dibujar tabla con filtros cruzados (Tarjeta de Estado + Buscador)
         function renderTable() {
             const tbody = document.getElementById('precintos-table-body');
             const searchTxt = document.getElementById('table-search').value.toLowerCase().trim();
             tbody.innerHTML = "";
 
             if (masterData.size === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">No hay datos cargados en el sistema.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-10 text-center text-slate-400 font-normal">No se registran datos en el software.</td></tr>`;
                 return;
             }
 
             let indexCounter = 1;
             masterData.forEach((status, code) => {
-                // Filtro 1: Tarjetas superiores
                 if (activeStatusFilter !== 'all' && status !== activeStatusFilter) return;
-                // Filtro 2: Barra de búsqueda por texto
                 if (searchTxt && !code.toLowerCase().includes(searchTxt)) return;
 
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/30 transition text-slate-300";
+                tr.className = "hover:bg-slate-50 transition-colors text-slate-600";
                 
-                // Color dinámico según el estado actual en la fila
-                let selectColor = "text-blue-400 border-blue-900 bg-blue-950/40";
-                if (status === 'Instalado') selectColor = "text-emerald-400 border-emerald-900 bg-emerald-950/40";
-                if (status === 'Dañado') selectColor = "text-rose-400 border-rose-900 bg-rose-950/40";
+                // Selectores limpios y corporativos según el estado
+                let statusStyle = "text-slate-800 bg-slate-100 border-slate-200 focus:border-slate-400";
+                if (status === 'Instalado') statusStyle = "text-emerald-800 bg-emerald-50 border-emerald-100 focus:border-emerald-300";
+                if (status === 'Dañado') statusStyle = "text-red-800 bg-red-50 border-red-100 focus:border-red-300";
 
                 tr.innerHTML = `
-                    <td class="px-4 py-2 text-center text-xs font-mono text-slate-500">${indexCounter++}</td>
-                    <td class="px-4 py-2 font-mono font-medium tracking-wider text-slate-200">${code}</td>
-                    <td class="px-4 py-2">
-                        <select onchange="updateRecordStatus('${code}', this.value)" class="text-xs font-semibold rounded-lg px-2.5 py-1 bg-slate-950 border focus:outline-none transition cursor-pointer ${selectColor}">
-                            <option value="En Stock" ${status === 'En Stock' ? 'selected' : ''}>📦 En Stock</option>
-                            <option value="Instalado" ${status === 'Instalado' ? 'selected' : ''}>✅ Instalado</option>
-                            <option value="Dañado" ${status === 'Dañado' ? 'selected' : ''}>❌ Dañado</option>
+                    <td class="px-5 py-2.5 text-center font-mono text-slate-400 text-[11px]">${indexCounter++}</td>
+                    <td class="px-5 py-2.5 font-mono font-medium tracking-wide text-slate-900">${code}</td>
+                    <td class="px-5 py-2.5">
+                        <select onchange="updateRecordStatus('${code}', this.value)" class="text-[11px] font-medium rounded-md px-2 py-1 bg-white border outline-none transition cursor-pointer ${statusStyle}">
+                            <option value="En Stock" ${status === 'En Stock' ? 'selected' : ''}>En Stock</option>
+                            <option value="Instalado" ${status === 'Instalado' ? 'selected' : ''}>Instalado</option>
+                            <option value="Dañado" ${status === 'Dañado' ? 'selected' : ''}>Dañado</option>
                         </select>
                     </td>
-                    <td class="px-4 py-2 text-center">
-                        <button onclick="removeRecord('${code}')" class="text-slate-500 hover:text-rose-400 transition p-1 cursor-pointer">✕</button>
+                    <td class="px-5 py-2.5 text-center">
+                        <button onclick="removeRecord('${code}')" class="text-slate-400 hover:text-red-600 transition-colors p-1 cursor-pointer" title="Remover">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
 
             if (indexCounter === 1) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">Ningún elemento coincide con el filtro activo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-10 text-center text-slate-400 font-normal">Ningún registro coincide con los criterios de filtrado.</td></tr>`;
             }
         }
 
-        // Exportación estructurada a formato Excel (.xlsx)
         function exportToExcel() {
-            if (masterData.size === 0) return alert("No hay datos en memoria.");
+            if (masterData.size === 0) return alert("No existen datos para generar el reporte.");
 
             const rows = [];
             masterData.forEach((status, code) => {
                 rows.push({
                     "Código de Precinto": code,
                     "Estado Actual": status,
-                    "Fecha de Procesamiento": new Date().toLocaleDateString()
+                    "Fecha de Auditoría": new Date().toLocaleDateString()
                 });
             });
 
             const worksheet = XLSX.utils.json_to_sheet(rows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Precintos");
-            XLSX.writeFile(workbook, `Inventario_Precintos_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario General");
+            XLSX.writeFile(workbook, `Reporte_Auditoria_Precintos.xlsx`);
         }
     </script>
 </body>
