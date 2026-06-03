@@ -3,64 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentación de Precintos en Masa</title>
+    <title>Sistema de Documentación de Precintos</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SheetJS para Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center">
 
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <header class="mb-8 border-b border-slate-800 pb-4">
-            <h1 class="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                Sistema de Documentación de Precintos
-            </h1>
-            <p class="text-slate-400 mt-1 text-sm">Generación, validación y procesamiento masivo de seriales.</p>
+    <!-- 1. PANTALLA DE LOGIN -->
+    <div id="login-screen" class="w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl transition duration-300">
+        <div class="text-center mb-8">
+            <div class="h-12 w-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-500/20">
+                <span class="text-xl">🔒</span>
+            </div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Control de Precintos</h2>
+            <p class="text-xs text-slate-400 mt-2">Introduce tus credenciales para acceder al sistema</p>
+        </div>
+
+        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Usuario / Operador</label>
+                <input id="login-user" type="text" required class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl p-3 text-sm text-slate-200 outline-none transition" placeholder="ej. admin">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Contraseña</label>
+                <input id="login-pass" type="password" required class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl p-3 text-sm text-slate-200 outline-none transition" placeholder="••••••••">
+            </div>
+            <div id="login-error" class="text-xs text-rose-400 font-medium hidden text-center">
+                ❌ Credenciales incorrectas. Intenta de nuevo.
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-xl text-sm tracking-wide shadow-lg shadow-cyan-500/10 transition cursor-pointer">
+                Iniciar Sesión
+            </button>
+        </form>
+    </div>
+
+    <!-- 2. PANEL PRINCIPAL DE LA APLICACIÓN (OCULTO INICIALMENTE) -->
+    <div id="app-screen" class="container mx-auto px-4 py-8 max-w-6xl hidden w-full align-top">
+        <!-- Encabezado con información de usuario -->
+        <header class="mb-8 border-b border-slate-800 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                    Sistema de Documentación de Precintos
+                </h1>
+                <p class="text-slate-400 mt-1 text-sm">Generación, validación y asignación de estados en lote.</p>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
+                <div class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span id="user-display" class="text-xs font-mono text-slate-300"></span>
+                <button onclick="handleLogout()" class="text-xs text-rose-400 hover:text-rose-300 font-medium ml-2 pl-2 border-l border-slate-700 cursor-pointer">
+                    Salir
+                </button>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Panel Izquierdo (Entradas y Acciones) -->
             <div class="space-y-6 lg:col-span-1">
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
-                    <h2 class="text-lg font-bold mb-4 text-cyan-400 flex items-center gap-2">
+                <!-- Entrada Masiva -->
+                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-xl">
+                    <h2 class="text-base font-bold mb-4 text-cyan-400 flex items-center gap-2">
                         <span>📥</span> Entrada en Masa
                     </h2>
                     
-                    <div class="flex gap-2 mb-4 bg-slate-950 p-1 rounded-lg text-xs font-semibold">
+                    <div class="flex gap-2 mb-4 bg-slate-950 p-1 rounded-lg text-xs font-semibold border border-slate-800/50">
                         <button onclick="switchTab('manual')" id="btn-tab-manual" class="flex-1 py-2 rounded-md bg-slate-800 text-cyan-400 shadow">Lista / Texto</button>
                         <button onclick="switchTab('auto')" id="btn-tab-auto" class="flex-1 py-2 rounded-md text-slate-400 hover:text-slate-200">Secuencial</button>
                     </div>
 
+                    <!-- Texto Libre -->
                     <div id="input-manual" class="space-y-3">
-                        <label class="block text-xs text-slate-400 font-medium">Pega los números de precinto (uno por línea o separados por coma):</label>
-                        <textarea id="txt-mass-input" rows="6" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-cyan-500 text-slate-200 placeholder-slate-600" placeholder="PR-0001&#10;PR-0002&#10;PR-0003"></textarea>
+                        <label class="block text-xs text-slate-400 font-medium">Códigos de precinto (uno por línea o separados por comas):</label>
+                        <textarea id="txt-mass-input" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-cyan-500 text-slate-200 placeholder-slate-700" placeholder="PR-0001&#10;PR-0002&#10;PR-0003"></textarea>
                         <button onclick="processManualInput()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-2.5 px-4 rounded-lg transition text-sm cursor-pointer">
                             Procesar Lista
                         </button>
                     </div>
 
+                    <!-- Secuencial -->
                     <div id="input-auto" class="space-y-3 hidden">
                         <div>
                             <label class="block text-xs text-slate-400 font-medium mb-1">Prefijo (Opcional)</label>
-                            <input id="seq-prefix" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="ej. PR-">
+                            <input id="seq-prefix" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="ej. PR-">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs text-slate-400 font-medium mb-1">Inicio Rango</label>
-                                <input id="seq-start" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="1">
+                                <input id="seq-start" type="number" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="1">
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-400 font-medium mb-1">Fin Rango</label>
-                                <input id="seq-end" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="100">
+                                <input id="seq-end" type="number" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="100">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs text-slate-400 font-medium mb-1">Relleno de ceros (Padding)</label>
-                            <input id="seq-pad" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-cyan-500" placeholder="ej. 4 para 0001" value="0">
+                            <input id="seq-pad" type="number" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500" value="0">
                         </div>
                         <button onclick="processSequentialInput()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm cursor-pointer">
                             Generar Secuencia
@@ -68,55 +113,70 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-3">
-                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Acciones de Datos</h3>
+                <!-- Acciones de Datos -->
+                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-xl space-y-3">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Acciones globales</h3>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1 cursor-pointer">
                             📊 Exportar Excel
                         </button>
-                        <button onclick="clearAllData()" class="bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 font-medium py-2 px-3 rounded-lg text-xs transition cursor-pointer">
+                        <button onclick="clearAllData()" class="bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-900 font-medium py-2 px-3 rounded-lg text-xs transition cursor-pointer">
                             🗑️ Limpiar Todo
                         </button>
                     </div>
                 </div>
             </div>
 
+            <!-- Panel Derecho (Filtros Interactivos y Tabla) -->
             <div class="lg:col-span-2 space-y-4">
+                <!-- Casillas de Filtrado Interactivo de Estados -->
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                        <p class="text-xs text-slate-400 font-medium">Total Cargados</p>
-                        <p id="stat-total" class="text-2xl font-bold text-slate-100">0</p>
-                    </div>
-                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                        <p class="text-xs text-emerald-400 font-medium">Válidos (Únicos)</p>
-                        <p id="stat-valid" class="text-2xl font-bold text-emerald-400">0</p>
-                    </div>
-                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                        <p class="text-xs text-rose-400 font-medium">Duplicados Omitidos</p>
-                        <p id="stat-dup" class="text-2xl font-bold text-rose-400">0</p>
-                    </div>
+                    <!-- Botón/Filtro En Stock -->
+                    <button onclick="setStatusFilter('En Stock')" id="filter-stock" class="block w-full text-left bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-blue-500/50 transition relative overflow-hidden group cursor-pointer focus:outline-none">
+                        <p class="text-xs text-slate-400 font-medium transition group-hover:text-blue-400">📦 En Stock</p>
+                        <p id="count-stock" class="text-2xl font-bold text-blue-400 mt-1">0</p>
+                        <div id="indicator-stock" class="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 hidden"></div>
+                    </button>
+                    <!-- Botón/Filtro Instalados -->
+                    <button onclick="setStatusFilter('Instalado')" id="filter-installed" class="block w-full text-left bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-emerald-500/50 transition relative overflow-hidden group cursor-pointer focus:outline-none">
+                        <p class="text-xs text-slate-400 font-medium transition group-hover:text-emerald-400">✅ Instalados</p>
+                        <p id="count-installed" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+                        <div id="indicator-installed" class="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500 hidden"></div>
+                    </button>
+                    <!-- Botón/Filtro Dañados -->
+                    <button onclick="setStatusFilter('Dañado')" id="filter-damaged" class="block w-full text-left bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-rose-500/50 transition relative overflow-hidden group cursor-pointer focus:outline-none">
+                        <p class="text-xs text-slate-400 font-medium transition group-hover:text-rose-400">❌ Dañados</p>
+                        <p id="count-damaged" class="text-2xl font-bold text-rose-400 mt-1">0</p>
+                        <div id="indicator-damaged" class="absolute bottom-0 left-0 right-0 h-1 bg-rose-500 hidden"></div>
+                    </button>
                 </div>
 
-                <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
-                    <div class="p-4 bg-slate-800/50 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <h2 class="text-base font-bold text-slate-200">Registros en Memoria</h2>
-                        <input id="table-search" type="text" oninput="renderTable()" placeholder="Filtrar por número..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1 text-xs w-full sm:w-48 focus:outline-none focus:border-cyan-500">
+                <!-- Contenedor de la Tabla -->
+                <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-xl overflow-hidden">
+                    <div class="p-4 bg-slate-900/50 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base font-bold text-slate-200">Registros en Memoria</h2>
+                            <span id="active-filter-badge" onclick="setStatusFilter('all')" class="hidden text-[10px] bg-slate-800 hover:bg-slate-750 text-cyan-400 border border-slate-700 px-2 py-0.5 rounded-md font-mono cursor-pointer transition">
+                                Mostrando: <span id="active-filter-text"></span> ✕
+                            </span>
+                        </div>
+                        <input id="table-search" type="text" oninput="renderTable()" placeholder="Filtrar por código..." class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs w-full sm:w-48 text-slate-200 focus:outline-none focus:border-cyan-500">
                     </div>
 
-                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                    <div class="overflow-x-auto max-h-[480px] custom-scroll">
                         <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
+                            <thead class="bg-slate-950 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-sm">
                                 <tr>
                                     <th class="px-4 py-3 w-12 text-center">#</th>
                                     <th class="px-4 py-3">Código del Precinto</th>
-                                    <th class="px-4 py-3">Estado por Defecto</th>
+                                    <th class="px-4 py-3">Estado actual</th>
                                     <th class="px-4 py-3 w-16 text-center">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="precintos-table-body" class="divide-y divide-slate-700/50">
+                            <tbody id="precintos-table-body" class="divide-y divide-slate-800/60">
                                 <tr>
                                     <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
-                                        No hay datos cargados. Usa el panel izquierdo para agregar precintos.
+                                        No hay datos cargados en el sistema.
                                     </td>
                                 </tr>
                             </tbody>
@@ -127,13 +187,53 @@
         </div>
     </div>
 
+    <!-- CONTROLADOR JAVASCRIPT -->
     <script>
-        // Set de datos principal (usamos Set para garantizar búsquedas eficientes)
-        let masterData = new Set();
+        // Mapa de datos principal [Código -> Estado]
+        let masterData = new Map();
         let currentTab = 'manual';
-        let duplicateCount = 0;
+        let activeStatusFilter = 'all'; 
 
-        // Cambiar entre pestañas de ingreso
+        // Manejo del Login de Usuario
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value;
+            const errorDiv = document.getElementById('login-error');
+
+            // Simulación básica de credenciales
+            if (user !== "" && pass !== "") {
+                errorDiv.classList.add('hidden');
+                document.getElementById('login-screen').classList.add('hidden');
+                
+                // Mostrar app
+                const appScreen = document.getElementById('app-screen');
+                appScreen.classList.remove('hidden');
+                appScreen.classList.add('grid');
+                document.body.className = "bg-slate-950 text-slate-100 min-h-screen font-sans antialiased p-0 flex items-start justify-center";
+                
+                document.getElementById('user-display').innerText = `👤 OP: ${user.toUpperCase()}`;
+                updateDashboard();
+            } else {
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            masterData.clear();
+            activeStatusFilter = 'all';
+            document.getElementById('txt-mass-input').value = "";
+            document.getElementById('table-search').value = "";
+            
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('grid');
+            
+            const loginScreen = document.getElementById('login-screen');
+            loginScreen.classList.remove('hidden');
+            document.body.className = "bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center";
+            document.getElementById('login-form').reset();
+        }
+
         function switchTab(tab) {
             currentTab = tab;
             const btnManual = document.getElementById('btn-tab-manual');
@@ -154,21 +254,16 @@
             }
         }
 
-        // Procesar Entrada Manual (Texto)
+        // Procesamiento masivo por cuadro de texto
         function processManualInput() {
             const rawText = document.getElementById('txt-mass-input').value;
-            if (!rawText.trim()) return alert("Por favor ingresa o pega códigos de precinto.");
+            if (!rawText.trim()) return;
 
-            // Expresión regular para separar por saltos de línea o comas y limpiar espacios vacíos
             const items = rawText.split(/[\n,]+/).map(item => item.trim()).filter(item => item !== "");
             
-            let addedInThisSession = 0;
             items.forEach(item => {
-                if (masterData.has(item)) {
-                    duplicateCount++;
-                } else {
-                    masterData.add(item);
-                    addedInThisSession++;
+                if (!masterData.has(item)) {
+                    masterData.set(item, 'En Stock'); // Todo entra por defecto en Stock
                 }
             });
 
@@ -176,136 +271,150 @@
             updateDashboard();
         }
 
-        // Procesar Entrada Secuencial (Automática)
+        // Generación Secuencial
         function processSequentialInput() {
             const prefix = document.getElementById('seq-prefix').value.trim();
             const start = parseInt(document.getElementById('seq-start').value);
             const end = parseInt(document.getElementById('seq-end').value);
             const padding = parseInt(document.getElementById('seq-pad').value) || 0;
 
-            if (isNaN(start) || !Number.isInteger(start) || isNaN(end) || !Number.isInteger(end)) {
-                return alert("Por favor define números válidos para los rangos de inicio y fin.");
-            }
-            if (start > end) {
-                return alert("El número de inicio no puede ser mayor que el número de fin.");
-            }
-            if ((end - start) > 50000) {
-                return alert("Por seguridad del navegador, reduce el bloque de generación a un máximo de 50,000 registros por lote.");
+            if (isNaN(start) || isNaN(end) || start > end) {
+                return alert("Por favor, introduce un rango numérico válido.");
             }
 
             for (let i = start; i <= end; i++) {
-                let numericPart = i.toString();
-                if (padding > 0) {
-                    numericPart = numericPart.padStart(padding, '0');
-                }
+                let numericPart = i.toString().padStart(padding, '0');
                 const generatedCode = `${prefix}${numericPart}`;
-
-                if (masterData.has(generatedCode)) {
-                    duplicateCount++;
-                } else {
-                    masterData.add(generatedCode);
+                if (!masterData.has(generatedCode)) {
+                    masterData.set(generatedCode, 'En Stock');
                 }
             }
-
             updateDashboard();
         }
 
-        // Eliminar un precinto individual
+        // Cambiar estado de un precinto específico desde la tabla
+        function updateRecordStatus(code, newStatus) {
+            masterData.set(code, newStatus);
+            updateDashboard();
+        }
+
         function removeRecord(code) {
             masterData.delete(code);
             updateDashboard();
         }
 
-        // Limpiar todas las estructuras de datos
         function clearAllData() {
             if (masterData.size === 0) return;
-            if (confirm("¿Estás seguro de que deseas borrar todos los registros actuales?")) {
+            if (confirm("¿Limpiar por completo la base de datos de la sesión?")) {
                 masterData.clear();
-                duplicateCount = 0;
+                activeStatusFilter = 'all';
                 updateDashboard();
             }
         }
 
-        // Actualizar estadísticas y refrescar la UI de la tabla
+        // Establecer filtro activo según la tarjeta pulsada
+        function setStatusFilter(status) {
+            activeStatusFilter = status;
+            updateDashboard();
+        }
+
+        // Cálculo de métricas y renderizado de UI
         function updateDashboard() {
-            const listSize = masterData.size;
-            document.getElementById('stat-total').innerText = listSize + duplicateCount;
-            document.getElementById('stat-valid').innerText = listSize;
-            document.getElementById('stat-dup').innerText = duplicateCount;
+            let stock = 0, installed = 0, damaged = 0;
+
+            masterData.forEach((status) => {
+                if (status === 'En Stock') stock++;
+                if (status === 'Instalado') installed++;
+                if (status === 'Dañado') damaged++;
+            });
+
+            // Actualizar contadores numéricos
+            document.getElementById('count-stock').innerText = stock;
+            document.getElementById('count-installed').innerText = installed;
+            document.getElementById('count-damaged').innerText = damaged;
+
+            // Cambiar estilos de las tarjetas si están activas como filtros
+            document.getElementById('indicator-stock').className = `absolute bottom-0 left-0 right-0 h-1 bg-blue-500 ${activeStatusFilter === 'En Stock' ? '' : 'hidden'}`;
+            document.getElementById('indicator-installed').className = `absolute bottom-0 left-0 right-0 h-1 bg-emerald-500 ${activeStatusFilter === 'Instalado' ? '' : 'hidden'}`;
+            document.getElementById('indicator-damaged').className = `absolute bottom-0 left-0 right-0 h-1 bg-rose-500 ${activeStatusFilter === 'Dañado' ? '' : 'hidden'}`;
+
+            // Control de badge de filtro activo en la tabla
+            const badge = document.getElementById('active-filter-badge');
+            if (activeStatusFilter !== 'all') {
+                badge.classList.remove('hidden');
+                document.getElementById('active-filter-text').innerText = activeStatusFilter;
+            } else {
+                badge.classList.add('hidden');
+            }
+
             renderTable();
         }
 
-        // Renderizar dinámicamente el listado de la tabla aplicando filtros
+        // Dibujar tabla con filtros cruzados (Tarjeta de Estado + Buscador)
         function renderTable() {
             const tbody = document.getElementById('precintos-table-body');
-            const filterText = document.getElementById('table-search').value.toLowerCase().trim();
-            
+            const searchTxt = document.getElementById('table-search').value.toLowerCase().trim();
             tbody.innerHTML = "";
 
             if (masterData.size === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
-                            No hay datos cargados. Usa el panel izquierdo para agregar precintos.
-                        </td>
-                    </tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">No hay datos cargados en el sistema.</td></tr>`;
                 return;
             }
 
-            // Convertir a Array para procesar búsquedas y renderizar
-            const dataArray = Array.from(masterData);
-            const filteredData = dataArray.filter(code => code.toLowerCase().includes(filterText));
+            let indexCounter = 1;
+            masterData.forEach((status, code) => {
+                // Filtro 1: Tarjetas superiores
+                if (activeStatusFilter !== 'all' && status !== activeStatusFilter) return;
+                // Filtro 2: Barra de búsqueda por texto
+                if (searchTxt && !code.toLowerCase().includes(searchTxt)) return;
 
-            if (filteredData.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">
-                            Ningún precinto coincide con el filtro de búsqueda.
-                        </td>
-                    </tr>`;
-                return;
-            }
-
-            filteredData.forEach((code, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-750/40 transition";
+                tr.className = "hover:bg-slate-800/30 transition text-slate-300";
+                
+                // Color dinámico según el estado actual en la fila
+                let selectColor = "text-blue-400 border-blue-900 bg-blue-950/40";
+                if (status === 'Instalado') selectColor = "text-emerald-400 border-emerald-900 bg-emerald-950/40";
+                if (status === 'Dañado') selectColor = "text-rose-400 border-rose-900 bg-rose-950/40";
+
                 tr.innerHTML = `
-                    <td class="px-4 py-2.5 text-center text-xs font-mono text-slate-500">${index + 1}</td>
-                    <td class="px-4 py-2.5 text-sm font-mono text-slate-200 tracking-wider">${code}</td>
-                    <td class="px-4 py-2.5">
-                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                            Cargado
-                        </span>
+                    <td class="px-4 py-2 text-center text-xs font-mono text-slate-500">${indexCounter++}</td>
+                    <td class="px-4 py-2 font-mono font-medium tracking-wider text-slate-200">${code}</td>
+                    <td class="px-4 py-2">
+                        <select onchange="updateRecordStatus('${code}', this.value)" class="text-xs font-semibold rounded-lg px-2.5 py-1 bg-slate-950 border focus:outline-none transition cursor-pointer ${selectColor}">
+                            <option value="En Stock" ${status === 'En Stock' ? 'selected' : ''}>📦 En Stock</option>
+                            <option value="Instalado" ${status === 'Instalado' ? 'selected' : ''}>✅ Instalado</option>
+                            <option value="Dañado" ${status === 'Dañado' ? 'selected' : ''}>❌ Dañado</option>
+                        </select>
                     </td>
-                    <td class="px-4 py-2.5 text-center">
-                        <button onclick="removeRecord('${code}')" class="text-slate-500 hover:text-rose-400 transition p-1 cursor-pointer" title="Eliminar registro">
-                            ✕
-                        </button>
+                    <td class="px-4 py-2 text-center">
+                        <button onclick="removeRecord('${code}')" class="text-slate-500 hover:text-rose-400 transition p-1 cursor-pointer">✕</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            if (indexCounter === 1) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs font-medium">Ningún elemento coincide con el filtro activo.</td></tr>`;
+            }
         }
 
-        // Exportar los datos limpios a formato Excel (.xlsx) usando SheetJS
+        // Exportación estructurada a formato Excel (.xlsx)
         function exportToExcel() {
-            if (masterData.size === 0) return alert("No hay datos en memoria para exportar.");
+            if (masterData.size === 0) return alert("No hay datos en memoria.");
 
-            // Estructurar los datos mapeados para las columnas de Excel
-            const formattedRows = Array.from(masterData).map((code, index) => ({
-                "N°": index + 1,
-                "Código de Precinto": code,
-                "Estado de Carga": "Registrado N/A",
-                "Fecha de Registro": new Date().toLocaleDateString()
-            }));
+            const rows = [];
+            masterData.forEach((status, code) => {
+                rows.push({
+                    "Código de Precinto": code,
+                    "Estado Actual": status,
+                    "Fecha de Procesamiento": new Date().toLocaleDateString()
+                });
+            });
 
-            const worksheet = XLSX.utils.json_to_sheet(formattedRows);
+            const worksheet = XLSX.utils.json_to_sheet(rows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Precintos Documentados");
-
-            // Generar archivo de descarga automática
-            XLSX.writeFile(workbook, `Reporte_Masivo_Precintos_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Precintos");
+            XLSX.writeFile(workbook, `Inventario_Precintos_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
     </script>
 </body>
